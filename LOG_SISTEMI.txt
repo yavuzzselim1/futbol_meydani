@@ -1,0 +1,50 @@
+FUTBOL MEYDANI — LOG VE TANILAMA SİSTEMİ
+
+Oyuncu tarafı
+-------------
+Ayarlar > Tanılama Raporu bölümünde cihazdaki son 80 olay görüntülenebilir,
+kopyalanabilir ve temizlenebilir. İnternet yokken en fazla 40 online kayıt
+bekletilir; Online Meydan yeniden açıldığında gönderilmeye çalışılır.
+
+Sunucu tarafı
+-------------
+Supabase Dashboard > Table Editor > game_logs bölümünden kayıtları yalnızca
+proje yöneticisi görebilir. Oyuncular bu tabloyu okuyamaz veya doğrudan
+değiştiremez. Kayıtlar 30 gün sonra yeni log geldiğinde otomatik temizlenir.
+
+SQL Editor örnekleri:
+
+-- Son hatalar
+select created_at, error_code, event, metadata
+from public.game_logs
+where level = 'error'
+order by created_at desc
+limit 100;
+
+-- Hata kodu dağılımı
+select error_code, count(*) as adet
+from public.game_logs
+where error_code <> '' and created_at > now() - interval '7 days'
+group by error_code
+order by adet desc;
+
+Destek kodları
+--------------
+FM-ONL-001  Oda kurma
+FM-ONL-002  Kodla katılma
+FM-ONL-003  Rastgele rakip bulma
+FM-ONL-004  Hazır durumu
+FM-ONL-005  Maç başlatma
+FM-ONL-006  Takım banlama
+FM-ONL-007  Kadro kilitleme
+FM-ONL-008  Canlı bağlantı
+FM-ONL-009  Sonuç/geçmiş kaydı
+FM-ONL-010  Kadro seçimini başlatma
+FM-SYS-001  Supabase başlangıç bağlantısı
+FM-SYS-002  Beklenmeyen uygulama hatası
+
+Gizlilik
+--------
+API anahtarı, erişim anahtarı, parola, oyuncu adı, seçilen futbolcular ve
+kadro içeriği tanılama metadata alanına yazılmaz. Oyuncu destek isterse kısa
+hata kodunu veya Ayarlar'daki raporu paylaşabilir.

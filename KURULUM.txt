@@ -1,0 +1,129 @@
+1. VS Code terminalinde q tuşuna basarak uygulamayı durdur.
+2. Paketteki lib ve assets klasörleriyle pubspec.yaml dosyasını futbol_meydani klasörüne kopyala.
+3. Sorulduğunda mevcut dosyaların üzerine yaz. Yeni dört lig verisinin çalışması için assets klasörünün de kopyalanması zorunludur.
+4. Terminalde flutter pub get çalıştır.
+5. Terminalde flutter run -d chrome çalıştır.
+
+Bu sürüm: Chrome ve mobilde çalışan gerçek WAV ses motoru; başlatma,
+seçim, kilitleme, kart açma, uyarı, ana menü, yenileme ve çıkışa özel
+efektler ile tam isabete özel altın konfeti, hedef şovu ve kutlama sesini
+içerir. Son 10 saniyede her saniye yüksek tik sesi, süre bitiminde ayrı
+uyarı tonu çalar. Ayrıca Futbol Meydanı amblemi, uygulama simgesi ve
+markalı açılış ekranı eklenmiştir. APK adımları APK_OLUSTUR.txt dosyasındadır.
+Top dönerek merkeze gelir, enerji halkası oluşturur ve amblem merkezden
+dışarı doğru animasyonla tamamlanır.
+Animasyon katmanı web, tablet ve telefonda tüm ekranı kaplar ve gerçek
+ekran merkezini kullanır.
+Android uygulama adı Futbol Meydanı olarak değiştirilir; şeffaf ve güvenli
+alanlı adaptive icon telefonun simge maskesine uyum sağlar. Sesler daha
+yüksek seviyeye normalize edilmiştir. Saha kartları ekran genişliği ve
+aynı sıradaki mevki sayısına göre çakışmayacak biçimde ölçeklenir.
+
+v1.6.0 build19 ile Meydan Kadrosu'na 2023/24 Premier League, La Liga,
+Serie A ve Trendyol Süper Lig verileri eklenmiştir. Her düelloda görev,
+lig, 2 veya 3 takım ve ulaşılabilir hedef sırayla kurayla açıklanır.
+Arama sonuçları yalnızca kurada çıkan takımların futbolcularını gösterir.
+v1.6.1 build20 ile oyuncular ister rastgele lig kurasını kullanabilir, ister
+Premier League, La Liga, Serie A veya Süper Lig'i düello boyunca sabitleyebilir.
+
+v1.7.0 build21 ile Online Meydan'ın sunucudan bağımsız temeli eklenmiştir.
+Oyuncu adıyla 6 haneli oda kurulabilir, kodla katılım, oda kurucusu/rakip
+rolleri, hazır olma durumu, oda kodunu kopyalama, odadan ayrılma ve maçı
+başlatma koşulları test edilebilir. Bu sürümde çevrimiçi ekranlar yerel bir
+simülatör kullanır; iki farklı telefonun internet üzerinden bağlanması henüz
+açık değildir. Odayı kurduktan sonra "Yerel Test Rakibi Ekle" düğmesiyle
+akış tek cihazda denenebilir. Sonraki sürümde aynı veri arayüzü Supabase'e
+bağlanacaktır.
+
+v1.8.0 build22 ile gerçek Supabase bağlantısı eklenmiştir. İki farklı cihaz
+6 haneli kodla aynı odaya girebilir, hazır durumlarını canlı görebilir ve oda
+kurucusu akışı başlatabilir. Supabase bilgileri verilmezse yerel test modu
+çalışmaya devam eder. İlk sunucu kurulumu için SUPABASE_KURULUM.txt dosyasını
+izle ve supabase/online_rooms.sql dosyasını Supabase SQL Editor'da çalıştır.
+
+v1.9.0 build23 ile Online Meydan gerçek oynanabilir Meydan Kadrosu moduna
+bağlanmıştır. Oda kurucusunun çektiği görev, lig, takım ve hedef kurası iki
+cihazda aynı görünür. Her oyuncu 120 saniye içinde kendi telefonunda gizli
+7 kişilik kadrosunu kurar. Seçimler ayrı RLS korumalı tabloda saklanır ve
+iki oyuncu da kilitlemeden rakibe açılmaz. Ardından kadrolar iki sahada,
+mevki sırasına göre ve istatistikleriyle tek tek açıklanır.
+
+v1.10.0 build24 ile ana ekrandaki eski Premier League etiketi kaldırılmıştır.
+Online sonuç açılışını yalnızca oda kurucusu başlatır ve iki cihaz aynı anda
+açılışa geçer. Oda kurucusu açılış sırasında ekrana dokunarak iki cihazdaki
+animasyonu hızlandırabilir. Kadrosunu önce bitiren oyuncu rakibinin sunucu
+zamanına göre hesaplanan kalan süresini bekleme ekranında canlı görür.
+
+v1.11.0 build25 ile aktif çevrimiçi oda cihazda saklanır; uygulama yeniden
+açıldığında oda koduyla devam etme seçeneği gösterilir. Canlı akış kesilirse
+yeniden bağlanma uyarısı çıkar. Lider maç başlamadan ayrılırsa odadaki rakip
+otomatik olarak yeni lider olur. Sonuç ekranındaki Rövanş düğmesi yeni kurayı
+iki telefona aynı anda gönderir ve aynı oda koduyla yeni düello başlatır.
+
+v1.12.0 build26 ile internetsiz oynanan Son Dakika modu eklenmiştir. Oyuncu
+60 saniye içinde hareketli zamanlama göstergesini yeşil alanda durdurur,
+başarılı pas ve dripling hamlelerinden sonra hücum yönünü seçerek dallanan
+saha yolunda kaleye ilerler. Yedi aşama, üç hak, seri puanı, süre bonusu,
+en iyi skor ve ulaşılan en uzak aşama cihazda çevrimdışı saklanır.
+
+v1.12.1 build27 Son Dakika ekranındaki ilk derlemeyi engelleyen düğme
+parametresi ve gösterge satırı sözdizimi hatalarını düzeltir.
+
+v1.13.0 build28 Son Dakika'yı tam çevrimdışı beceri moduna dönüştürür.
+Pas zamanlaması, üç şeritli dripling, hedef avlamalı pres, ara pası,
+iki aşamalı yön/güç şutu ve hareketli kaleciye karşı köşe seçimi eklenmiştir.
+Güvenli ve riskli yollar farklı zorluk/puan sunar. Top kaybında beş saniyelik
+geri kazanma presi oynanır. Form çubuğu dolunca yavaş çekim açılır. Kolay,
+Normal ve Usta seçenekleri süre, hak, hız ve başarı alanını değiştirir.
+Serbest Koşu ve her gün yenilenen Günlük Parkur ile kalıcı kariyer golü,
+rütbe, en iyi skor ve en iyi seri kayıtları cihazda çevrimdışı tutulur.
+
+v1.13.1 build29 pres oyunundaki 3x3 hedeflerin tamamını eşit kare boyutuna
+getirir. Maç sayacı güvenli/riskli yol seçimi sırasında durur; yalnızca mini
+oyun ve topu geri kazanma mücadelesi aktifken ilerler.
+
+v1.14.0 build30 Son Dakika'ya 12 etaplı çevrimdışı kariyer haritası ekler.
+Mahalle Sahası, Şehir Stadı ve Meydan Arena bölümlerindeki etaplar sırayla
+açılır; her galibiyet kalan süre ve haklara göre 1-3 yıldız kazandırır.
+Dördüncü, sekizinci ve on ikinci etaplar kupa simgeli final karşılaşmalarıdır.
+Toplam 36 yıldız, kariyer golleri ve etap ilerlemesi cihazda saklanır.
+Serbest Koşu ve Günlük Parkur kariyer ekranından ayrıca açılabilir.
+
+v1.15.0 build31 kilitli kariyer finallerinde de 4, 8 ve 12. etapların kupa
+simgesini gösterir. Windows PowerShell'in Türkçe karakter kodlamasından
+etkilenmemesi için Android uygulama adı Unicode ile güvenli biçimde Futbol
+Meydanı olarak yazılır. Online Meydan Kadrosu'nda kura sonrasında her oyuncu
+rakibine bir takım banlar; banlanan takım rakibin futbolcu listesine girmez.
+İlk oyuncu kadrosunu kilitlediğinde rakibinin kalan süresi 60 saniyeden
+fazlaysa 60 saniyeye düşürülür. Bu sürüm için Supabase SQL dosyasının tamamı
+SQL Editor'da yeniden çalıştırılmalıdır.
+
+v1.15.1 build32 ana ekranın eski bilgi oyunu metinlerini oyunun genişleyen
+kimliğine göre yeniler. Yeni ana mesaj bilgi, strateji ve refleks modlarını
+birlikte anlatır. Nasıl Oynanır penceresi Oyun Modlarını Tanı bölümüne
+dönüştürülür; Online Meydan kartındaki eski altyapı/test ifadesi kaldırılır.
+
+v1.15.2 build33 ana ekrandaki oyun kartlarını ortak bir etiket sistemine
+geçirir. Modların sağ üstünde ÇEVRİMDIŞI, AYNI TELEFON veya ÇEVRİMİÇİ
+ifadeleri görünür; kart açıklamaları her modun gerçek oynanışını daha kısa
+ve anlaşılır biçimde anlatır.
+
+v1.16.0 build34 Online Meydan'a otomatik rakip bulma kuyruğu ekler. Oyuncular
+oda kodu paylaşmadan eşleşebilir; aramayı güvenli biçimde iptal edebilir.
+Tamamlanan maçlar yalnızca bir kez kaydedilir, galibiyet ve mağlubiyette
+Meydan puanı güncellenir. Online Profilim ekranı toplam maç, galibiyet,
+beraberlik, mağlubiyet, puan ve son 30 maçın sonucunu gösterir. Bu sürümü
+denemeden önce supabase/online_rooms.sql dosyasının tamamını SQL Editor'da
+yeniden çalıştırmak zorunludur.
+
+v1.18.0 build36 yeni sinematik ana ekranı, yenilenen mod seçim arayüzünü ve
+rakibin banından sonra kullanılabilecek takımları açıkça gösteren metni ekler.
+
+v1.17.0 build35 güvenli tanılama sistemini ekler. Oda, eşleşme, hazır olma,
+maç başlatma, takım banı, kadro kilitleme, bağlantı ve sonuç kaydetme olayları
+kısa FM hata kodlarıyla tutulur. İnternet yoksa en fazla 40 kayıt cihazda
+bekler ve bağlantı geldiğinde gönderilir. Sunucudaki kayıtlar 30 gün sonunda
+otomatik temizlenir. Ayarlar > Tanılama Raporu üzerinden cihazdaki son 80 olay
+görüntülenebilir, kopyalanabilir veya silinebilir. API anahtarı, oyuncu adı ve
+kadro seçimleri kayda alınmaz. Bu sürüm için Supabase SQL dosyası yeniden
+çalıştırılmalıdır.

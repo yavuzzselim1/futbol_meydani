@@ -1,0 +1,60 @@
+name: futbol_meydani
+description: Futbol Meydanı mobil futbol bilgi oyunu.
+publish_to: "none"
+version: 1.20.3+44
+
+environment:
+  sdk: ^3.12.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  audioplayers: ^6.5.1
+  shared_preferences: ^2.5.3
+  supabase_flutter: ^2.16.0
+  share_plus: ^13.2.1
+  video_player: ^2.13.0
+  google_fonts: ^8.2.0
+  flutter_dotenv: ^6.0.1
+  lottie: ^3.5.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.6
+
+flutter:
+  uses-material-design: true
+  assets:
+    - .env
+    - assets/data/futbol_hedefi_2024_25.json
+    - assets/data/meydan_2023_24.json
+    - assets/audio/
+    - assets/branding/
+    - assets/main/
+    - assets/arenas/
+    - assets/daily/
+    - assets/icons/
+    - assets/videos/
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: assets/branding/app_icon.png
+  adaptive_icon_background: "#04110C"
+  adaptive_icon_foreground: assets/branding/adaptive_foreground.png
+  adaptive_icon_foreground_inset: 0
+  min_sdk_android: 21
+
+flutter_native_splash:
+  color: "#04110C"
+  image: assets/branding/transparent.png
+  android: true
+  ios: true
+  web: true
+  android_12:
+    color: "#04110C"
+    image: assets/branding/transparent.png

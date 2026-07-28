@@ -1,0 +1,36 @@
+FUTBOL MEYDANI — ANDROID APK HAZIRLAMA
+
+1. Bu paketteki lib, assets ve pubspec.yaml dosyalarını mevcut
+   futbol_meydani projenin üzerine kopyala.
+
+2. VS Code terminalinde sırayla çalıştır:
+
+   flutter pub get
+   powershell -ExecutionPolicy Bypass -File .\android_hazirla.ps1
+   flutter clean
+   flutter pub get
+   flutter build apk --release
+
+   Online modu etkin APK için son komut yerine şunu kullan:
+
+   flutter build apk --release --dart-define=SUPABASE_URL=https://PROJE.supabase.co --dart-define=SUPABASE_PUBLISHABLE_KEY=sb_publishable_ANAHTARIN
+
+3. APK şu klasörde oluşur:
+
+   build\app\outputs\flutter-apk\app-release.apk
+
+   Bu sürüm için kolay tanınan bir kopya oluşturmak istersen:
+
+   Copy-Item ".\build\app\outputs\flutter-apk\app-release.apk" ".\Futbol_Meydani_v1.19.2_build40_invite_fix.apk" -Force
+
+4. Bu APK dosyasını Android telefona gönderip kurabilirsin.
+   Telefon bilinmeyen uygulama uyarısı verirse dosyayı açtığın uygulamaya
+   "Bilinmeyen uygulamaları yükleme" izni vermen gerekir.
+
+5. Telefon USB ile bağlıysa doğrudan test etmek için:
+
+   flutter devices
+   flutter run
+
+Not: Play Store sürümüne geçerken benzersiz Android paket adı ve imzalama
+anahtarı ayrıca hazırlanacaktır. Test APK'sı için bu işlem gerekli değildir.
