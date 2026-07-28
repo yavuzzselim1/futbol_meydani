@@ -1,11 +1,13 @@
+import 'dart:ui' as dart_ui;
 import 'package:flutter/material.dart';
 import 'package:futbol_meydani/constants.dart';
 import 'package:futbol_meydani/globals.dart';
 import 'package:futbol_meydani/models/game_data.dart';
 
 class AppBackground extends StatefulWidget {
-  const AppBackground({super.key, required this.child});
+  const AppBackground({super.key, required this.child, this.imagePath});
   final Widget child;
+  final String? imagePath;
 
   @override
   State<AppBackground> createState() => _AppBackgroundState();
@@ -49,7 +51,7 @@ class _AppBackgroundState extends State<AppBackground> with SingleTickerProvider
               );
             },
             child: Image.asset(
-              'assets/main/pro_football_bg_v2.png',
+              widget.imagePath ?? 'assets/main/pro_football_bg_v2.png',
               fit: BoxFit.cover,
             ),
           ),
@@ -61,9 +63,11 @@ class _AppBackgroundState extends State<AppBackground> with SingleTickerProvider
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
+                  Colors.black.withValues(alpha: 0.7),
                   Colors.black.withValues(alpha: 0.1),
                   Colors.black.withValues(alpha: 0.8),
                 ],
+                stops: const [0.0, 0.4, 1.0],
               ),
             ),
           ),
@@ -440,4 +444,135 @@ class OnlinePlayerTile extends StatelessWidget {
       ],
     ),
   );
+}
+
+// ─── GlassCard ──────────────────────────────────────────────────────
+class GlassCard extends StatelessWidget {
+  final Widget child;
+  final Key? cardKey;
+  
+  const GlassCard({super.key, required this.child, this.cardKey});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      key: cardKey,
+      width: double.infinity,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: dart_ui.ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.white12),
+            ),
+            child: child,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── PremiumButton ──────────────────────────────────────────────────
+class PremiumButton extends StatefulWidget {
+  final String label;
+  final IconData icon;
+  final VoidCallback? onPressed;
+  final bool isDanger;
+  
+  const PremiumButton({
+    super.key,
+    required this.label, 
+    required this.icon, 
+    this.onPressed, 
+    this.isDanger = false
+  });
+
+  @override
+  State<PremiumButton> createState() => _PremiumButtonState();
+}
+
+class _PremiumButtonState extends State<PremiumButton> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) {
+        if (widget.onPressed != null) {
+          setState(() => _isPressed = true);
+        }
+      },
+      onTapUp: (_) {
+        if (widget.onPressed != null) {
+          setState(() => _isPressed = false);
+          widget.onPressed!();
+        }
+      },
+      onTapCancel: () {
+        if (widget.onPressed != null) {
+          setState(() => _isPressed = false);
+        }
+      },
+      child: AnimatedScale(
+        scale: _isPressed ? 0.95 : 1.0,
+        duration: const Duration(milliseconds: 100),
+        curve: Curves.easeInOut,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: widget.isDanger 
+                  ? [const Color(0xFFFF6B5F).withValues(alpha: 0.1), const Color(0xFFD63B30).withValues(alpha: 0.2)]
+                  : [Colors.black.withValues(alpha: 0.8), Colors.black.withValues(alpha: 0.6)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(30),
+            border: Border.all(
+              color: widget.isDanger 
+                  ? const Color(0xFFFF6B5F).withValues(alpha: 0.5)
+                  : const Color(0xFF00E676).withValues(alpha: 0.8),
+              width: 1.5,
+            ),
+            boxShadow: [
+              if (!_isPressed)
+                BoxShadow(
+                  color: (widget.isDanger ? const Color(0xFFFF6B5F) : const Color(0xFF00E676)).withValues(alpha: 0.25), 
+                  blurRadius: 16,
+                  spreadRadius: -4,
+                  offset: const Offset(0, 0)
+                ),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                widget.icon, 
+                color: widget.isDanger ? const Color(0xFFFFB3AD) : const Color(0xFF00E676), 
+                size: 22,
+              ),
+              const SizedBox(width: 10),
+              Text(
+                widget.label,
+                style: TextStyle(
+                  color: widget.isDanger ? Colors.white : Colors.white,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 16,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }

@@ -1078,70 +1078,9 @@ class _DailyRewardBadge extends StatelessWidget {
     if (isClaimed) {
       gameStore.success();
       if (context.mounted) {
-        showDialog(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            backgroundColor: const Color(0xFF150F00),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-              side: const BorderSide(color: _kGold0, width: 2),
-            ),
-            title: Row(
-              children: [
-                const Icon(Icons.stars_rounded, color: _kGold0, size: 28),
-                const SizedBox(width: 8),
-                Text(
-                  'GÜNLÜK ÖDÜL ALINDI!',
-                  style: GoogleFonts.oswald(
-                    color: _kGold0,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                  ),
-                ),
-              ],
-            ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(
-                  Icons.monetization_on_rounded,
-                  color: _kGreen0,
-                  size: 54,
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  '+500 MP KAZANDIN!',
-                  style: TextStyle(
-                    color: _kGreen0,
-                    fontSize: 22,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Tebrikler! Günlük giriş ödülü olarak 500 Coin hesabına eklendi. Yarın tekrar gelmeyi unutma!',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white, fontSize: 14),
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  gameStore.tap(GameSound.tap);
-                  Navigator.pop(ctx);
-                },
-                child: const Text(
-                  'HARİKA',
-                  style: TextStyle(
-                    color: _kGold0,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-            ],
-          ),
+        GlassToast.show(
+          context,
+          'GÜNLÜK ÖDÜL ALINDI! +500 MP KAZANDIN!\nYarın tekrar gelmeyi unutma.',
         );
       }
     } else {

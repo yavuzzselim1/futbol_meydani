@@ -7,6 +7,7 @@ import 'online_profile_screen.dart';
 import 'online_squad_screen.dart';
 
 import '../../online/online_game.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../globals.dart';
 import '../../utils/glass_toast.dart';
@@ -69,7 +70,9 @@ class _OnlineEntryScreenState extends State<OnlineEntryScreen> {
       }
 
       final room = await repository.loadRoom(recovered.roomCode);
-      if (room == null || room.status == OnlineRoomStatus.closed) {
+      if (room == null ||
+          room.status == OnlineRoomStatus.closed ||
+          (recovered.isHost && room.guest == null)) {
         await clearActiveOnlineSession();
         if (mounted) setState(() => checkingRecovery = false);
         return;
@@ -210,7 +213,11 @@ class _OnlineEntryScreenState extends State<OnlineEntryScreen> {
   }
 
   void error(Object value) {
-    GlassToast.show(context, value.toString().replaceFirst('Bad state: ', ''), isError: true);
+    GlassToast.show(
+      context,
+      value.toString().replaceFirst('Bad state: ', ''),
+      isError: true,
+    );
   }
 
   bool _requireOnlineSession() {
@@ -370,217 +377,170 @@ class _OnlineEntryScreenState extends State<OnlineEntryScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Online Meydan')),
+    resizeToAvoidBottomInset: true,
+    appBar: AppBar(
+      title: const Text(
+        'Online Meydan',
+        style: TextStyle(fontWeight: FontWeight.bold),
+      ),
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+    ),
+    extendBodyBehindAppBar: true,
     body: AppBackground(
       child: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(20),
-          children: [
-            Container(
-              padding: const EdgeInsets.all(15),
-              decoration: BoxDecoration(
-                color: const Color(0x225EC8FF),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: const Color(0x665EC8FF)),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Icon(
-                    repository is SupabaseOnlineGameRepository
-                        ? Icons.cloud_done_rounded
-                        : Icons.science_outlined,
-                    color: const Color(0xFF5EC8FF),
-                  ),
-                  const SizedBox(width: 11),
-                  Expanded(
+                  const Expanded(
                     child: Text(
-                      repository is SupabaseOnlineGameRepository
-                          ? 'ÇEVRİMİÇİ BAĞLANTI\nSupabase etkin. İki farklı cihaz aynı 6 haneli oda koduyla bağlanabilir.'
-                          : 'YEREL TEST MODU\nSupabase bilgileri eklenmediği için oda akışı bu cihazda simüle ediliyor.',
-                      style: const TextStyle(
-                        color: muted,
-                        fontSize: 11,
+                      'Dünyanın her yerinden rakiplerle karşılaş veya arkadaşlarınla özel maç yap.',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 16,
                         height: 1.4,
-                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
+                  const SizedBox(width: 16),
+                  if (repository is SupabaseOnlineGameRepository)
+                    GestureDetector(
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => OnlineProfileScreen(repository: repository),
+                        ),
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.5),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.white24),
+                        ),
+                        child: const Icon(Icons.person_rounded, color: Colors.white, size: 28),
+                      ),
+                    ),
                 ],
               ),
-            ),
-            const SizedBox(height: 22),
-            if (checkingRecovery) ...[
-              const LinearProgressIndicator(),
-              const SizedBox(height: 13),
-            ],
-            if (savedSession != null) ...[
-              CardBox(
-                child: Column(
-                  children: [
-                    const Row(
-                      children: [
-                        Icon(Icons.restore_rounded, color: green),
-                        SizedBox(width: 9),
-                        Text(
-                          'Devam eden oda',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '${savedPlayerName ?? 'Oyuncu'} • Oda ${savedSession!.roomCode}',
-                      style: const TextStyle(color: muted),
-                    ),
-                    const SizedBox(height: 13),
-                    PrimaryButton(
-                      label: savedRoom?.gameSetup == null
-                          ? 'Odaya Yeniden Bağlan'
-                          : 'Maça Devam Et',
-                      icon: Icons.wifi_rounded,
-                      onPressed: busy ? null : _continueSavedMatch,
-                    ),
-                    const SizedBox(height: 6),
-                    TextButton(
-                      onPressed: busy
-                          ? null
-                          : () async {
-                              setState(() => busy = true);
-                              try {
-                                final active =
-                                    await repository.recoverActiveSession();
-                                if (active != null) {
-                                  await repository.leaveRoom(active);
-                                } else if (savedSession != null) {
-                                  await repository.leaveRoom(savedSession!);
-                                }
-                              } catch (_) {}
-                              await clearActiveOnlineSession();
-                              if (mounted) {
-                                setState(() {
-                                  savedSession = null;
-                                  savedPlayerName = null;
-                                  busy = false;
-                                });
-                              }
-                            },
-                      child: const Text('Kaydı Unut'),
-                    ),
-                  ],
+              const Spacer(),
+
+              if (checkingRecovery) ...[
+                const LinearProgressIndicator(color: Color(0xFF5EC8FF), backgroundColor: Colors.white24),
+                const SizedBox(height: 16),
+              ],
+              
+              if (savedSession != null) ...[
+                _buildActionCard(
+                  title: savedRoom?.gameSetup == null ? 'Yeniden Bağlan' : 'Maça Devam Et',
+                  subtitle: '${savedPlayerName ?? 'Oyuncu'} ile olan odaya geri dön.',
+                  icon: Icons.restore_rounded,
+                  color: const Color(0xFFFF453A),
+                  onTap: busy ? null : _continueSavedMatch,
                 ),
+                const SizedBox(height: 12),
+                Center(
+                  child: TextButton(
+                    onPressed: busy ? null : () async {
+                      setState(() => busy = true);
+                      try {
+                        final active = await repository.recoverActiveSession();
+                        if (active != null) await repository.leaveRoom(active);
+                        else if (savedSession != null) await repository.leaveRoom(savedSession!);
+                      } catch (_) {}
+                      await clearActiveOnlineSession();
+                      if (mounted) setState(() { savedSession = null; savedPlayerName = null; busy = false; });
+                    },
+                    child: const Text('Kaydı Sil', style: TextStyle(color: Colors.white54)),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+
+              _buildActionCard(
+                title: 'Hızlı Eşleşme',
+                subtitle: 'Rastgele bir rakip bul',
+                icon: Icons.bolt_rounded,
+                color: const Color(0xFF00E676),
+                isPrimary: true,
+                onTap: busy ? null : findRandomOpponent,
               ),
-              const SizedBox(height: 13),
+              const SizedBox(height: 16),
+              
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildActionCard(
+                      title: 'Oda Kur',
+                      subtitle: 'Özel maç',
+                      icon: Icons.add_rounded,
+                      color: const Color(0xFF5EC8FF),
+                      onTap: busy ? null : createRoom,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildActionCard(
+                      title: 'Katıl',
+                      subtitle: 'Kod veya QR',
+                      icon: Icons.qr_code_scanner_rounded,
+                      color: const Color(0xFFFF9F0A),
+                      onTap: busy ? null : () => _showJoinModal(context),
+                    ),
+                  ),
+                ],
+              ),
+              const Spacer(flex: 2),
             ],
-            const Text(
-              'Meydana nasıl gireceksin?',
+          ),
+        ),
+      ),
+    ),
+  );
+
+  Widget _buildActionCard({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required VoidCallback? onTap,
+    bool isPrimary = false,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: GlassCard(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Icon(icon, color: color, size: isPrimary ? 36 : 32),
+                Icon(Icons.arrow_forward_rounded, color: Colors.white38, size: 24),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Text(
+              title,
               style: TextStyle(
-                fontSize: 30,
-                height: 1.05,
-                fontWeight: FontWeight.w900,
+                fontSize: isPrimary ? 24 : 20,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
               ),
             ),
-            const SizedBox(height: 8),
-            const Text(
-              'Oda kur veya arkadaşının verdiği 6 haneli kodu kullan.',
-              style: TextStyle(color: muted),
-            ),
-            const SizedBox(height: 22),
-            PrimaryButton(
-              label: 'Rastgele Rakip Bul',
-              icon: Icons.bolt_rounded,
-              onPressed: busy ? null : findRandomOpponent,
-            ),
-            const SizedBox(height: 7),
-            OutlinedButton.icon(
-              onPressed: repository is SupabaseOnlineGameRepository
-                  ? () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            OnlineProfileScreen(repository: repository),
-                      ),
-                    )
-                  : null,
-              icon: const Icon(Icons.military_tech_rounded),
-              label: const Text('Online Profilim ve Maç Geçmişi'),
-            ),
-            const SizedBox(height: 13),
-            CardBox(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Row(
-                    children: [
-                      Icon(Icons.add_circle_outline_rounded, color: green),
-                      SizedBox(width: 9),
-                      Text(
-                        'Yeni oda kur',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 7),
-                  const Text(
-                    'Oda kodunu arkadaşına gönder ve bekleme odasında hazır olun.',
-                    style: TextStyle(color: muted, fontSize: 11),
-                  ),
-                  const SizedBox(height: 14),
-                  PrimaryButton(
-                    label: busy ? 'Hazırlanıyor…' : 'Oda Kur',
-                    icon: Icons.meeting_room_rounded,
-                    onPressed: busy ? null : createRoom,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 13),
-            CardBox(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Row(
-                    children: [
-                      Icon(Icons.login_rounded, color: Color(0xFF5EC8FF)),
-                      SizedBox(width: 9),
-                      Text(
-                        'Kodla katıl',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: roomCode,
-                    maxLength: 6,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 5,
-                    ),
-                    decoration: const InputDecoration(
-                      labelText: '6 haneli oda kodu',
-                      prefixIcon: Icon(Icons.tag_rounded),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  PrimaryButton(
-                    label: busy ? 'Bağlanıyor…' : 'Odaya Katıl',
-                    icon: Icons.arrow_forward_rounded,
-                    onPressed: busy ? null : joinRoom,
-                  ),
-                ],
+            const SizedBox(height: 6),
+            Text(
+              subtitle,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.white70,
               ),
             ),
           ],
@@ -588,4 +548,220 @@ class _OnlineEntryScreenState extends State<OnlineEntryScreen> {
       ),
     ),
   );
+}
+
+  void _showJoinModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _JoinModalContent(
+        roomCodeController: roomCode,
+        busy: busy,
+        onJoin: joinRoom,
+      ),
+    );
+  }
+}
+
+class _JoinModalContent extends StatefulWidget {
+  final TextEditingController roomCodeController;
+  final bool busy;
+  final VoidCallback onJoin;
+
+  const _JoinModalContent({
+    required this.roomCodeController,
+    required this.busy,
+    required this.onJoin,
+  });
+
+  @override
+  State<_JoinModalContent> createState() => _JoinModalContentState();
+}
+
+class _JoinModalContentState extends State<_JoinModalContent> {
+  bool _isCameraActive = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: GlassCard(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.qr_code_scanner_rounded,
+                color: Color(0xFF5EC8FF),
+                size: 48,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Davet Kodu Gir',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 16),
+              AnimatedSize(
+                duration: const Duration(milliseconds: 350),
+                curve: Curves.easeInOutCubic,
+                alignment: Alignment.topCenter,
+                clipBehavior: Clip.hardEdge,
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  switchInCurve: Curves.easeOut,
+                  switchOutCurve: Curves.easeIn,
+                  layoutBuilder:
+                      (Widget? currentChild, List<Widget> previousChildren) {
+                        return Stack(
+                          alignment: Alignment.topCenter,
+                          children: <Widget>[
+                            ...previousChildren,
+                            if (currentChild != null) currentChild,
+                          ],
+                        );
+                      },
+                  child: _isCameraActive
+                      ? KeyedSubtree(
+                          key: const ValueKey('scanner'),
+                          child: _buildScanner(),
+                        )
+                      : KeyedSubtree(
+                          key: const ValueKey('manual'),
+                          child: _buildManualEntry(),
+                        ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              if (!_isCameraActive)
+                PremiumButton(
+                  label: widget.busy ? 'Bağlanıyor…' : 'Odaya Katıl',
+                  icon: Icons.arrow_forward_rounded,
+                  onPressed: widget.busy
+                      ? null
+                      : () {
+                          Navigator.pop(context);
+                          widget.onJoin();
+                        },
+                ),
+              if (_isCameraActive)
+                PremiumButton(
+                  label: 'Kodu Elle Gir',
+                  icon: Icons.keyboard_rounded,
+                  onPressed: () {
+                    setState(() => _isCameraActive = false);
+                  },
+                ),
+              if (!_isCameraActive) ...[
+                const SizedBox(height: 12),
+                PremiumButton(
+                  label: 'Kamerayı Aç (QR Okut)',
+                  icon: Icons.camera_alt_rounded,
+                  onPressed: () {
+                    setState(() => _isCameraActive = true);
+                  },
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildManualEntry() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        TextField(
+          controller: widget.roomCodeController,
+          maxLength: 6,
+          keyboardType: TextInputType.number,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          style: const TextStyle(
+            fontSize: 32,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 12,
+            color: Colors.white,
+          ),
+          textAlign: TextAlign.center,
+          decoration: InputDecoration(
+            counterText: '',
+            hintText: '123456',
+            hintStyle: TextStyle(
+              color: Colors.white.withValues(alpha: 0.2),
+              letterSpacing: 12,
+            ),
+            filled: true,
+            fillColor: Colors.black.withValues(alpha: 0.5),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Colors.white24),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Colors.white24),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Color(0xFF00E676), width: 2),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 24,
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        const Text(
+          'Veya kameranızı kullanarak hızlıca katılın',
+          style: TextStyle(color: Colors.white54, fontSize: 13),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildScanner() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          height: 220,
+          width: double.infinity,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: MobileScanner(
+              onDetect: (capture) {
+                final List<Barcode> barcodes = capture.barcodes;
+                for (final barcode in barcodes) {
+                  final code = barcode.rawValue;
+                  if (code != null &&
+                      code.length == 6 &&
+                      int.tryParse(code) != null) {
+                    widget.roomCodeController.text = code;
+                    Navigator.pop(context);
+                    widget.onJoin();
+                    break;
+                  }
+                }
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        const Text(
+          'Kamerayı koda doğru tutun',
+          style: TextStyle(color: Colors.white70, fontSize: 13),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
 }

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import '../../utils/helpers.dart';
 import '../../online/online_game.dart';
 import 'online_squad_screen.dart';
@@ -107,7 +108,47 @@ class OnlineLobbyScreen extends StatelessWidget {
     repository: repository,
     session: session,
     child: PopScope(
-      canPop: true,
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final shouldLeave = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            backgroundColor: const Color(0xFF150F00),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: const BorderSide(color: Color(0xFF00E676), width: 1),
+            ),
+            title: const Text(
+              'Odadan Ayrıl',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+            content: const Text(
+              'Odadan ayrılmak istediğinize emin misiniz?',
+              style: TextStyle(color: Colors.white70),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('İPTAL', style: TextStyle(color: Colors.white54)),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text(
+                  'AYRIL',
+                  style: TextStyle(color: Color(0xFFFF7777), fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+        );
+        
+        if (shouldLeave == true) {
+          await repository.leaveRoom(session);
+          await clearActiveOnlineSession();
+          if (context.mounted) Navigator.pop(context, result);
+        }
+      },
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Bekleme Odası'),
@@ -239,6 +280,31 @@ class OnlineLobbyScreen extends StatelessWidget {
                         ),
                       ),
                     ),
+                    if (isLeader) ...[
+                      const SizedBox(height: 20),
+                      Center(
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: QrImageView(
+                            data: room.code,
+                            version: QrVersions.auto,
+                            size: 180.0,
+                            eyeStyle: const QrEyeStyle(
+                              eyeShape: QrEyeShape.square,
+                              color: Colors.black87,
+                            ),
+                            dataModuleStyle: const QrDataModuleStyle(
+                              dataModuleShape: QrDataModuleShape.square,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 21),
                     ProfilePlayerTile(
                       player: room.host,

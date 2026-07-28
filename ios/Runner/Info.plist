@@ -68,5 +68,7 @@
 		</array>
 		<key>UIStatusBarHidden</key>
 		<false/>
-	</dict>
+		<key>NSCameraUsageDescription</key>
+	<string>Futbol Meydanı, oda davet karekodlarını taramak için kameranızı kullanır.</string>
+</dict>
 </plist>
