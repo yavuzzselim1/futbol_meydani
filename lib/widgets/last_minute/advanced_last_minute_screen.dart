@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../screens/last_minute_screens.dart';
 import '../../screens/match_screen.dart';
@@ -337,19 +338,27 @@ class _AdvancedLastMinuteScreenState extends State<AdvancedLastMinuteScreen>
 
   void recoveryTap() {
     if (phase != AdvancedMinutePhase.recovery) return;
-    recoveryTaps++;
-    gameStore.tap(GameSound.tap);
     final need = switch (difficulty) {
       LastMinuteDifficulty.easy => 7,
       LastMinuteDifficulty.normal => 10,
       LastMinuteDifficulty.master => 13,
     };
+    if (recoveryTaps >= need) return; // Prevent double tap after finishing
+
+    recoveryTaps++;
+    gameStore.tap(GameSound.tap);
+    
     if (recoveryTaps >= need) {
       eventClock?.cancel();
       score += 100;
       form = min(100, form + 12);
       feedback = 'Topu geri kazandın!';
-      setState(() => phase = AdvancedMinutePhase.choice);
+      setState(() {});
+      Future.delayed(const Duration(milliseconds: 700), () {
+        if (mounted && phase == AdvancedMinutePhase.recovery) {
+          setState(() => phase = AdvancedMinutePhase.choice);
+        }
+      });
     } else {
       setState(() {});
     }
@@ -418,7 +427,10 @@ class _AdvancedLastMinuteScreenState extends State<AdvancedLastMinuteScreen>
 
   @override
   Widget build(BuildContext context) => Scaffold(
+    backgroundColor: Colors.black,
     appBar: AppBar(
+      backgroundColor: Colors.black,
+      elevation: 0,
       title: const Text('Son Dakika'),
       actions: [
         IconButton(onPressed: exit, icon: const Icon(Icons.close_rounded)),
@@ -428,11 +440,12 @@ class _AdvancedLastMinuteScreenState extends State<AdvancedLastMinuteScreen>
       children: [
         AppBackground(
           child: SafeArea(
+            bottom: false,
             child: LayoutBuilder(
               builder: (context, box) {
                 final compact = box.maxHeight < 720;
                 return SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                   child: ConstrainedBox(
                     constraints: BoxConstraints(minHeight: box.maxHeight - 32),
                     child: Column(
@@ -442,7 +455,7 @@ class _AdvancedLastMinuteScreenState extends State<AdvancedLastMinuteScreen>
                         SizedBox(
                           height: phase == AdvancedMinutePhase.setup
                               ? (compact ? 245 : 310)
-                              : (compact ? 220 : 275),
+                              : (compact ? 170 : 210),
                           child: LastMinuteMap(
                             stage: stage,
                             route: route,
@@ -489,7 +502,7 @@ class _AdvancedLastMinuteScreenState extends State<AdvancedLastMinuteScreen>
       Row(
         children: [
           Expanded(
-            child: LastMinuteStat(
+            child: _GlassStatBox(
               icon: Icons.timer_rounded,
               value: '$seconds',
               label: 'SANİYE',
@@ -498,7 +511,7 @@ class _AdvancedLastMinuteScreenState extends State<AdvancedLastMinuteScreen>
           ),
           const SizedBox(width: 7),
           Expanded(
-            child: LastMinuteStat(
+            child: _GlassStatBox(
               icon: Icons.favorite_rounded,
               value: '$lives',
               label: 'HAK',
@@ -506,7 +519,7 @@ class _AdvancedLastMinuteScreenState extends State<AdvancedLastMinuteScreen>
           ),
           const SizedBox(width: 7),
           Expanded(
-            child: LastMinuteStat(
+            child: _GlassStatBox(
               icon: Icons.stars_rounded,
               value: '$score',
               label: 'SKOR',
@@ -533,7 +546,7 @@ class _AdvancedLastMinuteScreenState extends State<AdvancedLastMinuteScreen>
                 value: form / 100,
                 minHeight: 8,
                 backgroundColor: Colors.white10,
-                color: form >= 100 ? const Color(0xFFFFD166) : green,
+                color: form >= 100 ? const Color(0xFFE2B75A) : Colors.white,
               ),
             ),
           ),
@@ -541,7 +554,7 @@ class _AdvancedLastMinuteScreenState extends State<AdvancedLastMinuteScreen>
           Text(
             '$form%',
             style: const TextStyle(
-              color: green,
+              color: Colors.white,
               fontSize: 9,
               fontWeight: FontWeight.w900,
             ),
@@ -551,69 +564,65 @@ class _AdvancedLastMinuteScreenState extends State<AdvancedLastMinuteScreen>
     ],
   );
 
-  Widget _setupCard() => CardBox(
+  Widget _setupCard() => ClipRRect(
     key: const ValueKey('advancedSetup'),
-    child: Column(
-      children: [
-        Text(
-          widget.careerLevel == null
-              ? 'SON 60 SANİYE'
-              : '${CareerLevelInfo.levels[widget.careerLevel!].stadium.toUpperCase()} • ETAP ${widget.careerLevel! + 1}',
-          style: const TextStyle(
-            color: Color(0xFFFF6B5F),
-            fontSize: 10,
-            fontWeight: FontWeight.w900,
-            letterSpacing: 1.6,
-          ),
+    borderRadius: BorderRadius.circular(20),
+    child: BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white12),
         ),
-        const SizedBox(height: 5),
-        const Text(
-          'Kaleye giden yolu sen çiz.',
-          style: TextStyle(fontSize: 25, fontWeight: FontWeight.w900),
-        ),
-        const SizedBox(height: 7),
-        const Text(
-          'Altı farklı beceri oyununu geç. Güvenli veya riskli yolu seç, formunu doldur ve son vuruşu tamamla.',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: muted, height: 1.35),
-        ),
-        const SizedBox(height: 12),
-        if (widget.careerLevel == null) ...[
-          Row(
-            children: [
-              Expanded(
-                child: ChoiceChip(
-                  label: const Text('Serbest Koşu'),
-                  selected: !dailyCourse,
-                  onSelected: (_) => setState(() => dailyCourse = false),
-                ),
+        child: Column(
+          children: [
+            Text(
+              widget.careerLevel == null
+                  ? 'SON 60 SANİYE'
+                  : '${CareerLevelInfo.levels[widget.careerLevel!].stadium.toUpperCase()} • ETAP ${widget.careerLevel! + 1}',
+              style: const TextStyle(
+                color: Color(0xFFE2B75A),
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 2.0,
               ),
-              const SizedBox(width: 7),
-              Expanded(
-                child: ChoiceChip(
-                  label: const Text('Günlük Parkur'),
-                  selected: dailyCourse,
-                  onSelected: (_) => setState(() => dailyCourse = true),
-                ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Kaleye giden yolu sen çiz.',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Colors.white),
+            ),
+            const Text(
+              'Altı farklı beceri oyununu geç. Güvenli veya riskli yolu seç, formunu doldur ve son vuruşu tamamla.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white70, height: 1.4, fontSize: 13),
+            ),
+            const SizedBox(height: 16),
+            if (widget.careerLevel == null) ...[
+              _SlidingSegmentControl<bool>(
+                items: const [false, true],
+                value: dailyCourse,
+                labelBuilder: (val) => val ? 'Günlük Parkur' : 'Serbest Koşu',
+                onChanged: (val) => setState(() => dailyCourse = val),
               ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          SegmentedButton<LastMinuteDifficulty>(
-            segments: LastMinuteDifficulty.values
-                .map((d) => ButtonSegment(value: d, label: Text(d.label)))
-                .toList(),
-            selected: {difficulty},
-            onSelectionChanged: (v) => setState(() => difficulty = v.first),
-          ),
-        ] else
-          Container(
+              const SizedBox(height: 12),
+              _SlidingSegmentControl<LastMinuteDifficulty>(
+                items: LastMinuteDifficulty.values,
+                value: difficulty,
+                labelBuilder: (val) => val.label,
+                onChanged: (val) => setState(() => difficulty = val),
+              ),
+            ] else
+              Container(
             width: double.infinity,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0x22FFD166),
+              color: const Color(0xFFE2B75A).withOpacity(0.1),
               borderRadius: BorderRadius.circular(15),
-              border: Border.all(color: const Color(0x55FFD166)),
+              border: Border.all(color: const Color(0xFFE2B75A).withOpacity(0.3)),
             ),
             child: Row(
               children: [
@@ -621,19 +630,19 @@ class _AdvancedLastMinuteScreenState extends State<AdvancedLastMinuteScreen>
                   CareerLevelInfo.levels[widget.careerLevel!].boss
                       ? Icons.emoji_events_rounded
                       : Icons.flag_rounded,
-                  color: const Color(0xFFFFD166),
+                  color: const Color(0xFFE2B75A),
                 ),
                 const SizedBox(width: 9),
                 Expanded(
                   child: Text(
                     CareerLevelInfo.levels[widget.careerLevel!].title,
-                    style: const TextStyle(fontWeight: FontWeight.w900),
+                    style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.white),
                   ),
                 ),
                 Text(
                   difficulty.label,
                   style: const TextStyle(
-                    color: green,
+                    color: Colors.white70,
                     fontSize: 10,
                     fontWeight: FontWeight.w900,
                   ),
@@ -641,7 +650,7 @@ class _AdvancedLastMinuteScreenState extends State<AdvancedLastMinuteScreen>
               ],
             ),
           ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 14),
         Text(
           '${difficulty.seconds} sn • ${difficulty.lives} hak • ${difficulty == LastMinuteDifficulty.master
               ? 'yüksek hız'
@@ -649,34 +658,65 @@ class _AdvancedLastMinuteScreenState extends State<AdvancedLastMinuteScreen>
               ? 'geniş başarı alanı'
               : 'dengeli oyun'}',
           style: const TextStyle(
-            color: green,
+            color: Colors.white54,
             fontSize: 10,
             fontWeight: FontWeight.w800,
           ),
         ),
-        const SizedBox(height: 5),
+        const SizedBox(height: 6),
         Text(
           '$careerRank • ${gameStore.lastMinuteGoals} kariyer golü',
           style: const TextStyle(
-            color: Color(0xFFFFD166),
+            color: Color(0xFFE2B75A),
             fontSize: 10,
             fontWeight: FontWeight.w900,
           ),
         ),
-        const SizedBox(height: 13),
-        PrimaryButton(
-          label: 'Maça Gir',
-          icon: Icons.play_arrow_rounded,
-          onPressed: startMatch,
+        const SizedBox(height: 18),
+        InkWell(
+          onTap: startMatch,
+          borderRadius: BorderRadius.circular(30),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFE2B75A), Color(0xFFC7982F)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(30),
+              boxShadow: const [
+                BoxShadow(color: Color(0x44E2B75A), blurRadius: 10, offset: Offset(0, 4)),
+              ],
+            ),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.play_arrow_rounded, color: Colors.black87, size: 22),
+                SizedBox(width: 8),
+                Text(
+                  'Maça Gir',
+                  style: TextStyle(
+                    color: Colors.black87,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ],
     ),
-  );
+  ),
+),
+);
 
   Widget _challengeCard() {
     final current = runChallenges[stage];
-    return CardBox(
-      key: ValueKey('challenge$stage$shotPart'),
+    return _GlassCard(
+      cardKey: ValueKey('challenge$stage$shotPart'),
       child: Column(
         children: [
           Row(
@@ -685,12 +725,13 @@ class _AdvancedLastMinuteScreenState extends State<AdvancedLastMinuteScreen>
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: green.withValues(alpha: .14),
+                  color: Colors.white.withValues(alpha: .05),
                   shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white12),
                 ),
-                child: Icon(challengeIcon(current), color: green),
+                child: Icon(challengeIcon(current), color: Colors.white),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -698,16 +739,18 @@ class _AdvancedLastMinuteScreenState extends State<AdvancedLastMinuteScreen>
                     Text(
                       '${stage + 1}/7 • ${challengeTitle(current)}',
                       style: const TextStyle(
-                        fontSize: 19,
+                        fontSize: 18,
                         fontWeight: FontWeight.w900,
+                        color: Colors.white,
                       ),
                     ),
                     Text(
                       '${risky ? 'RİSKLİ' : 'GÜVENLİ'} YOL • Seri x$streak${slowMotion ? ' • YAVAŞ ÇEKİM' : ''}',
                       style: TextStyle(
-                        color: slowMotion ? const Color(0xFFFFD166) : muted,
+                        color: slowMotion ? const Color(0xFFE2B75A) : Colors.white54,
                         fontSize: 9,
                         fontWeight: FontWeight.w900,
+                        letterSpacing: 1.2,
                       ),
                     ),
                   ],
@@ -771,10 +814,10 @@ class _AdvancedLastMinuteScreenState extends State<AdvancedLastMinuteScreen>
                     child: Container(
                       height: 21,
                       decoration: BoxDecoration(
-                        color: green.withValues(alpha: .72),
+                        color: const Color(0xFFE2B75A).withValues(alpha: .72),
                         borderRadius: BorderRadius.circular(99),
                         boxShadow: const [
-                          BoxShadow(color: Color(0x7771F39A), blurRadius: 11),
+                          BoxShadow(color: Color(0x77E2B75A), blurRadius: 11),
                         ],
                       ),
                     ),
@@ -787,6 +830,7 @@ class _AdvancedLastMinuteScreenState extends State<AdvancedLastMinuteScreen>
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(7),
+                        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
                       ),
                     ),
                   ),
@@ -796,8 +840,8 @@ class _AdvancedLastMinuteScreenState extends State<AdvancedLastMinuteScreen>
           },
         ),
       ),
-      const SizedBox(height: 10),
-      PrimaryButton(
+      const SizedBox(height: 16),
+      _PremiumButton(
         label: current == MinuteChallenge.shot && shotPart == 0
             ? 'YÖNÜ KİLİTLE'
             : current == MinuteChallenge.shot
@@ -831,12 +875,12 @@ class _AdvancedLastMinuteScreenState extends State<AdvancedLastMinuteScreen>
                   decoration: BoxDecoration(
                     color: lane == obstacleLane
                         ? const Color(0x44FF6B5F)
-                        : green.withValues(alpha: .10),
+                        : Colors.white.withValues(alpha: .05),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: lane == obstacleLane
                           ? const Color(0xFFFF6B5F)
-                          : green.withValues(alpha: .45),
+                          : Colors.white24,
                     ),
                   ),
                   child: Icon(
@@ -845,7 +889,7 @@ class _AdvancedLastMinuteScreenState extends State<AdvancedLastMinuteScreen>
                         : Icons.arrow_upward_rounded,
                     color: lane == obstacleLane
                         ? const Color(0xFFFF6B5F)
-                        : green,
+                        : const Color(0xFFE2B75A),
                     size: 34,
                   ),
                 ),
@@ -871,7 +915,7 @@ class _AdvancedLastMinuteScreenState extends State<AdvancedLastMinuteScreen>
           crossAxisCount: 3,
           mainAxisSpacing: 6,
           crossAxisSpacing: 6,
-          childAspectRatio: 1,
+          childAspectRatio: 1.3,
         ),
         itemCount: 9,
         itemBuilder: (_, i) => InkWell(
@@ -880,12 +924,15 @@ class _AdvancedLastMinuteScreenState extends State<AdvancedLastMinuteScreen>
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 120),
             decoration: BoxDecoration(
-              color: i == pressTarget ? green : Colors.white10,
+              color: i == pressTarget ? const Color(0xFFE2B75A) : Colors.white10,
               borderRadius: BorderRadius.circular(13),
+              boxShadow: i == pressTarget 
+                ? [const BoxShadow(color: Color(0x55E2B75A), blurRadius: 10)]
+                : null,
             ),
             child: Icon(
               Icons.directions_run_rounded,
-              color: i == pressTarget ? bg : muted,
+              color: i == pressTarget ? Colors.black87 : Colors.white38,
             ),
           ),
         ),
@@ -913,21 +960,21 @@ class _AdvancedLastMinuteScreenState extends State<AdvancedLastMinuteScreen>
                   duration: const Duration(milliseconds: 150),
                   height: 95,
                   decoration: BoxDecoration(
-                    color: lane == keeperLane
-                        ? const Color(0x335EC8FF)
-                        : Colors.white10,
+                    color: lane != keeperLane
+                        ? const Color(0x33E2B75A)
+                        : const Color(0x44FF6B5F),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: lane == keeperLane
-                          ? const Color(0xFF5EC8FF)
-                          : Colors.white12,
+                      color: lane != keeperLane
+                          ? const Color(0xFFE2B75A)
+                          : const Color(0xFFFF6B5F),
                     ),
                   ),
                   child: Icon(
                     lane == keeperLane
                         ? Icons.sports_handball_rounded
                         : Icons.sports_soccer_rounded,
-                    color: lane == keeperLane ? const Color(0xFF5EC8FF) : green,
+                    color: lane != keeperLane ? const Color(0xFFE2B75A) : const Color(0xFFFF6B5F),
                     size: 33,
                   ),
                 ),
@@ -939,15 +986,15 @@ class _AdvancedLastMinuteScreenState extends State<AdvancedLastMinuteScreen>
     ],
   );
 
-  Widget _choiceCard() => CardBox(
-    key: ValueKey('choice$stage'),
+  Widget _choiceCard() => _GlassCard(
+    cardKey: ValueKey('choice$stage'),
     child: Column(
       children: [
-        const Icon(Icons.alt_route_rounded, color: green, size: 39),
+        const Icon(Icons.alt_route_rounded, color: Color(0xFFE2B75A), size: 39),
         const SizedBox(height: 5),
         Text(
           feedback.isEmpty ? 'Hücum yolunu seç' : feedback,
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.white),
         ),
         const SizedBox(height: 12),
         Row(
@@ -957,7 +1004,7 @@ class _AdvancedLastMinuteScreenState extends State<AdvancedLastMinuteScreen>
                 title: 'Güvenli',
                 subtitle: 'Geniş alan\nNormal puan',
                 icon: Icons.shield_outlined,
-                color: green,
+                color: const Color(0xFFE2B75A),
                 onTap: () => choosePath(false),
               ),
             ),
@@ -983,8 +1030,8 @@ class _AdvancedLastMinuteScreenState extends State<AdvancedLastMinuteScreen>
       LastMinuteDifficulty.normal => 10,
       LastMinuteDifficulty.master => 13,
     };
-    return CardBox(
-      key: ValueKey('recovery$stage'),
+    return _GlassCard(
+      cardKey: ValueKey('recovery$stage'),
       child: Column(
         children: [
           const Icon(
@@ -995,12 +1042,12 @@ class _AdvancedLastMinuteScreenState extends State<AdvancedLastMinuteScreen>
           const SizedBox(height: 5),
           const Text(
             'TOP RAKİPTE!',
-            style: TextStyle(fontSize: 23, fontWeight: FontWeight.w900),
+            style: TextStyle(fontSize: 23, fontWeight: FontWeight.w900, color: Colors.white),
           ),
           const SizedBox(height: 5),
           const Text(
             '5 saniye içinde seri pres yap ve topu geri kazan.',
-            style: TextStyle(color: muted),
+            style: TextStyle(color: Colors.white70),
           ),
           const SizedBox(height: 11),
           LinearProgressIndicator(
@@ -1010,34 +1057,35 @@ class _AdvancedLastMinuteScreenState extends State<AdvancedLastMinuteScreen>
             backgroundColor: Colors.white10,
             color: const Color(0xFFFF6B5F),
           ),
-          const SizedBox(height: 10),
-          PrimaryButton(
+          const SizedBox(height: 16),
+          _PremiumButton(
             label: 'PRES! $recoveryTaps/$need',
             icon: Icons.ads_click_rounded,
             onPressed: recoveryTap,
+            isDanger: true,
           ),
         ],
       ),
     );
   }
 
-  Widget _resultCard() => CardBox(
-    key: const ValueKey('advancedResult'),
+  Widget _resultCard() => _GlassCard(
+    cardKey: const ValueKey('advancedResult'),
     child: Column(
       children: [
         Icon(
           goal ? Icons.emoji_events_rounded : Icons.flag_rounded,
-          color: goal ? const Color(0xFFFFD166) : muted,
+          color: goal ? const Color(0xFFFFD166) : Colors.white38,
           size: 48,
         ),
         const SizedBox(height: 5),
         Text(
           goal ? 'SON DAKİKA GOLÜ!' : 'HÜCUM SONA ERDİ',
           textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w900),
+          style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w900, color: Colors.white),
         ),
         const SizedBox(height: 4),
-        Text(feedback, style: const TextStyle(color: muted)),
+        Text(feedback, style: const TextStyle(color: Colors.white70)),
         const SizedBox(height: 11),
         Row(
           children: [
@@ -1074,7 +1122,7 @@ class _AdvancedLastMinuteScreenState extends State<AdvancedLastMinuteScreen>
         Text(
           '${dailyCourse ? 'Günlük Parkur' : 'Serbest Koşu'} • ${difficulty.label} • ${route.length} yol seçimi',
           style: const TextStyle(
-            color: green,
+            color: Color(0xFFE2B75A),
             fontSize: 10,
             fontWeight: FontWeight.w800,
           ),
@@ -1088,28 +1136,78 @@ class _AdvancedLastMinuteScreenState extends State<AdvancedLastMinuteScreen>
             fontWeight: FontWeight.w900,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
+        if (widget.careerLevel != null && goal && widget.careerLevel! + 1 < CareerLevelInfo.levels.length) ...[
+          _PremiumButton(
+            label: 'Sonraki Bölüm',
+            icon: Icons.fast_forward_rounded,
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AdvancedLastMinuteScreen(
+                    careerLevel: widget.careerLevel! + 1,
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+        ],
         Row(
           children: [
             Expanded(
-              child: OutlinedButton.icon(
-                onPressed: exit,
-                icon: Icon(
-                  widget.careerLevel == null
-                      ? Icons.home_rounded
-                      : Icons.map_rounded,
-                ),
-                label: Text(
-                  widget.careerLevel == null ? 'Ana Menü' : 'Haritaya Dön',
+              child: InkWell(
+                onTap: exit,
+                borderRadius: BorderRadius.circular(30),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(30),
+                    border: Border.all(color: Colors.white24),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        widget.careerLevel == null ? Icons.home_rounded : Icons.map_rounded,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        widget.careerLevel == null ? 'Ana Menü' : 'Harita',
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: FilledButton.icon(
-                onPressed: startMatch,
-                icon: const Icon(Icons.refresh_rounded),
-                label: const Text('Tekrar Oyna'),
+              child: InkWell(
+                onTap: startMatch,
+                borderRadius: BorderRadius.circular(30),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(colors: [Color(0xFFE2B75A), Color(0xFFC7982F)]),
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.refresh_rounded, color: Colors.black87, size: 18),
+                      SizedBox(width: 6),
+                      Text(
+                        'Tekrar',
+                        style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ],
@@ -1164,4 +1262,321 @@ class _PathButton extends StatelessWidget {
       ),
     ),
   );
+}
+
+class _SlidingSegmentControl<T> extends StatefulWidget {
+  final List<T> items;
+  final String Function(T) labelBuilder;
+  final T value;
+  final ValueChanged<T> onChanged;
+
+  const _SlidingSegmentControl({
+    super.key,
+    required this.items,
+    required this.labelBuilder,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  State<_SlidingSegmentControl<T>> createState() => _SlidingSegmentControlState<T>();
+}
+
+class _SlidingSegmentControlState<T> extends State<_SlidingSegmentControl<T>> {
+  double? _dragPosition;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 48,
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final count = widget.items.length;
+          final tabWidth = constraints.maxWidth / count;
+          final currentIndex = widget.items.indexOf(widget.value);
+
+          double leftPos = tabWidth * currentIndex;
+          if (_dragPosition != null) {
+            leftPos = _dragPosition!.clamp(0.0, tabWidth * (count - 1));
+          }
+
+          const textStyle = TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w800,
+          );
+
+          return TweenAnimationBuilder<double>(
+            tween: Tween<double>(end: leftPos),
+            duration: _dragPosition != null ? Duration.zero : const Duration(milliseconds: 250),
+            curve: Curves.easeOutCubic,
+            builder: (context, currentLeft, child) {
+              return Stack(
+                children: [
+                  Row(
+                    children: widget.items.map((item) => Expanded(
+                      child: Center(
+                        child: Text(
+                          widget.labelBuilder(item),
+                          style: textStyle.copyWith(color: Colors.white54),
+                        ),
+                      ),
+                    )).toList(),
+                  ),
+                  Positioned(
+                    left: currentLeft,
+                    top: 0,
+                    bottom: 0,
+                    width: tabWidth,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: Colors.white24),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 8,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(24),
+                        child: Stack(
+                          children: [
+                            Positioned(
+                              left: -currentLeft,
+                              top: 0,
+                              bottom: 0,
+                              width: constraints.maxWidth,
+                              child: Row(
+                                children: widget.items.map((item) => Expanded(
+                                  child: Center(
+                                    child: Text(
+                                      widget.labelBuilder(item),
+                                      style: textStyle.copyWith(color: Colors.white),
+                                    ),
+                                  ),
+                                )).toList(),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned.fill(
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTapUp: (details) {
+                        final index = (details.localPosition.dx / tabWidth).floor().clamp(0, count - 1);
+                        final target = widget.items[index];
+                        if (target != widget.value) widget.onChanged(target);
+                      },
+                      onHorizontalDragStart: (details) {
+                        setState(() => _dragPosition = tabWidth * currentIndex);
+                      },
+                      onHorizontalDragUpdate: (details) {
+                        if (_dragPosition != null) {
+                          setState(() => _dragPosition = _dragPosition! + details.delta.dx);
+                        }
+                      },
+                      onHorizontalDragEnd: (details) {
+                        if (_dragPosition != null) {
+                          final index = ((_dragPosition! + (tabWidth/2)) / tabWidth).floor().clamp(0, count - 1);
+                          final target = widget.items[index];
+                          setState(() => _dragPosition = null);
+                          if (target != widget.value) widget.onChanged(target);
+                        }
+                      },
+                      onHorizontalDragCancel: () {
+                        if (_dragPosition != null) setState(() => _dragPosition = null);
+                      },
+                    ),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _GlassCard extends StatelessWidget {
+  final Widget child;
+  final Key? cardKey;
+  const _GlassCard({super.key, required this.child, this.cardKey});
+  
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      key: cardKey,
+      borderRadius: BorderRadius.circular(20),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white12),
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
+class _PremiumButton extends StatefulWidget {
+  final String label;
+  final IconData icon;
+  final VoidCallback? onPressed;
+  final bool isDanger;
+  
+  const _PremiumButton({
+    super.key,
+    required this.label, 
+    required this.icon, 
+    this.onPressed, 
+    this.isDanger = false
+  });
+
+  @override
+  State<_PremiumButton> createState() => _PremiumButtonState();
+}
+
+class _PremiumButtonState extends State<_PremiumButton> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) {
+        if (widget.onPressed != null) {
+          setState(() => _isPressed = true);
+        }
+      },
+      onTapUp: (_) {
+        if (widget.onPressed != null) {
+          setState(() => _isPressed = false);
+          widget.onPressed!();
+        }
+      },
+      onTapCancel: () {
+        if (widget.onPressed != null) {
+          setState(() => _isPressed = false);
+        }
+      },
+      child: AnimatedScale(
+        scale: _isPressed ? 0.95 : 1.0,
+        duration: const Duration(milliseconds: 100),
+        curve: Curves.easeInOut,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: widget.isDanger 
+                  ? [const Color(0xFFFF6B5F), const Color(0xFFD63B30)]
+                  : [const Color(0xFFE2B75A), const Color(0xFFC7982F)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(30),
+            boxShadow: [
+              if (!_isPressed)
+                BoxShadow(
+                  color: (widget.isDanger ? const Color(0xFFFF6B5F) : const Color(0xFFE2B75A)).withValues(alpha: 0.35), 
+                  blurRadius: 12, 
+                  offset: const Offset(0, 4)
+                ),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(widget.icon, color: Colors.black87, size: 22),
+              const SizedBox(width: 8),
+              Text(
+                widget.label,
+                style: const TextStyle(
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 16,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _GlassStatBox extends StatelessWidget {
+  final String label;
+  final String value;
+  final IconData icon;
+  final bool danger;
+
+  const _GlassStatBox({
+    required this.label,
+    required this.value,
+    required this.icon,
+    this.danger = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = danger ? const Color(0xFFFF6B5F) : const Color(0xFFE2B75A);
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: color, size: 16),
+              const SizedBox(width: 6),
+              Text(
+                value,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                  shadows: [
+                    Shadow(color: color.withValues(alpha: 0.5), blurRadius: 10),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white54,
+              fontSize: 9,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.2,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

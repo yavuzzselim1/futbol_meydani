@@ -3,32 +3,91 @@ import 'package:futbol_meydani/constants.dart';
 import 'package:futbol_meydani/globals.dart';
 import 'package:futbol_meydani/models/game_data.dart';
 
-// ─── AppBackground ──────────────────────────────────────────────────
-class AppBackground extends StatelessWidget {
+class AppBackground extends StatefulWidget {
   const AppBackground({super.key, required this.child});
   final Widget child;
+
+  @override
+  State<AppBackground> createState() => _AppBackgroundState();
+}
+
+class _AppBackgroundState extends State<AppBackground> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2500),
+    );
+    _scaleAnimation = Tween<double>(begin: 1.15, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
+    );
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) => Container(
-    decoration: const BoxDecoration(
-      gradient: RadialGradient(
-        center: Alignment(-.8, -.9),
-        radius: 1.5,
-        colors: [Color(0xFF153B2E), bg],
-      ),
+    decoration: const BoxDecoration(color: bg),
+    child: Stack(
+      children: [
+        Positioned.fill(
+          child: AnimatedBuilder(
+            animation: _scaleAnimation,
+            builder: (context, child) {
+              return Transform.scale(
+                scale: _scaleAnimation.value,
+                child: child,
+              );
+            },
+            child: Image.asset(
+              'assets/main/pro_football_bg_v2.png',
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+        Positioned.fill(
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withValues(alpha: 0.1),
+                  Colors.black.withValues(alpha: 0.8),
+                ],
+              ),
+            ),
+          ),
+        ),
+        widget.child,
+      ],
     ),
-    child: child,
   );
 }
 
 // ─── PageShell ──────────────────────────────────────────────────────
 class PageShell extends StatelessWidget {
-  const PageShell({super.key, required this.child});
+  const PageShell({super.key, required this.child, this.bottomSafeArea = true});
   final Widget child;
+  final bool bottomSafeArea;
   @override
   Widget build(BuildContext context) => Scaffold(
     body: AppBackground(
       child: SafeArea(
-        child: Padding(padding: const EdgeInsets.all(24), child: child),
+        bottom: bottomSafeArea,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(24, 24, 24, bottomSafeArea ? 24 : 0),
+          child: child,
+        ),
       ),
     ),
   );

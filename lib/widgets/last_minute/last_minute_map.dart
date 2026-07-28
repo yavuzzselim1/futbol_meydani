@@ -19,10 +19,10 @@ class LastMinuteMap extends StatelessWidget {
       gradient: const LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [Color(0xFF236F48), Color(0xFF0D442D)],
+        colors: [Color(0xFF236F48), Color(0xFF0B3B26)],
       ),
       borderRadius: BorderRadius.circular(25),
-      border: Border.all(color: green.withValues(alpha: .65), width: 1.5),
+      border: Border.all(color: const Color(0xFF71F39A).withValues(alpha: .5), width: 1.5),
       boxShadow: const [BoxShadow(color: Colors.black45, blurRadius: 18)],
     ),
     child: ClipRRect(
@@ -47,9 +47,9 @@ class LastMinuteMapPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final line = Paint()
-      ..color = Colors.white38
+      ..color = Colors.white30
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.3;
+      ..strokeWidth = 1.2;
     canvas.drawRect(
       Rect.fromLTWH(12, 12, size.width - 24, size.height - 24),
       line,
@@ -92,32 +92,39 @@ class LastMinuteMapPainter extends CustomPainter {
       );
     }
     for (var i = 1; i < nodes.length; i++) {
+      final reached = i <= stage;
+      final pathColor = reached ? const Color(0xFF71F39A) : Colors.white24;
       final path = Paint()
-        ..color = i <= stage ? green : Colors.white24
-        ..strokeWidth = i <= stage ? 5 : 2
+        ..color = pathColor
+        ..strokeWidth = reached ? 4.5 : 2
         ..strokeCap = StrokeCap.round;
+      if (reached) {
+         path.maskFilter = const MaskFilter.blur(BlurStyle.solid, 4);
+      }
       canvas.drawLine(nodes[i - 1], nodes[i], path);
     }
     for (var i = 0; i < nodes.length; i++) {
       final reached = i <= stage;
+      final color = reached ? const Color(0xFF71F39A) : const Color(0xFF1E1E1E);
+      
       canvas.drawCircle(
         nodes[i],
-        reached ? 13 : 10,
-        Paint()..color = reached ? green : panel2,
+        reached ? 12 : 9,
+        Paint()..color = color,
       );
       canvas.drawCircle(
         nodes[i],
-        reached ? 13 : 10,
+        reached ? 12 : 9,
         Paint()
-          ..color = Colors.white54
+          ..color = reached ? Colors.white : Colors.white54
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.2,
+          ..strokeWidth = 1.5,
       );
       if (i == stage && i < 7) {
         canvas.drawCircle(
           nodes[i],
           19,
-          Paint()..color = green.withValues(alpha: .25),
+          Paint()..color = const Color(0xFF71F39A).withValues(alpha: .25),
         );
       }
     }
@@ -125,7 +132,7 @@ class LastMinuteMapPainter extends CustomPainter {
     final tp = TextPainter(
       text: TextSpan(
         text: goal ? '⚽' : '●',
-        style: TextStyle(fontSize: goal ? 23 : 14, color: bg),
+        style: TextStyle(fontSize: goal ? 24 : 12, color: goal ? Colors.white : Colors.black87),
       ),
       textDirection: TextDirection.ltr,
     )..layout();

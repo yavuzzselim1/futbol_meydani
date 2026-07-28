@@ -9,79 +9,20 @@ class CareerLevelInfo {
   final String title, stadium;
   final LastMinuteDifficulty difficulty;
   final bool boss;
+  
   static const levels = <CareerLevelInfo>[
-    CareerLevelInfo(
-      'İlk Düdük',
-      'Mahalle Sahası',
-      LastMinuteDifficulty.easy,
-      false,
-    ),
-    CareerLevelInfo(
-      'Dar Alan',
-      'Mahalle Sahası',
-      LastMinuteDifficulty.easy,
-      false,
-    ),
-    CareerLevelInfo(
-      'Hızlı Hücum',
-      'Mahalle Sahası',
-      LastMinuteDifficulty.normal,
-      false,
-    ),
-    CareerLevelInfo(
-      'Mahalle Finali',
-      'Mahalle Sahası',
-      LastMinuteDifficulty.normal,
-      true,
-    ),
-    CareerLevelInfo(
-      'Deplasman',
-      'Şehir Stadı',
-      LastMinuteDifficulty.normal,
-      false,
-    ),
-    CareerLevelInfo(
-      'Yoğun Pres',
-      'Şehir Stadı',
-      LastMinuteDifficulty.normal,
-      false,
-    ),
-    CareerLevelInfo(
-      'Kırılma Anı',
-      'Şehir Stadı',
-      LastMinuteDifficulty.master,
-      false,
-    ),
-    CareerLevelInfo(
-      'Şehir Derbisi',
-      'Şehir Stadı',
-      LastMinuteDifficulty.master,
-      true,
-    ),
-    CareerLevelInfo(
-      'Büyük Sahne',
-      'Meydan Arena',
-      LastMinuteDifficulty.master,
-      false,
-    ),
-    CareerLevelInfo(
-      'Usta Savunma',
-      'Meydan Arena',
-      LastMinuteDifficulty.master,
-      false,
-    ),
-    CareerLevelInfo(
-      'Kupa Gecesi',
-      'Meydan Arena',
-      LastMinuteDifficulty.master,
-      false,
-    ),
-    CareerLevelInfo(
-      'Meydan Finali',
-      'Meydan Arena',
-      LastMinuteDifficulty.master,
-      true,
-    ),
+    CareerLevelInfo('İlk Düdük', 'Mahalle Sahası', LastMinuteDifficulty.easy, false),
+    CareerLevelInfo('Dar Alan', 'Mahalle Sahası', LastMinuteDifficulty.easy, false),
+    CareerLevelInfo('Hızlı Hücum', 'Mahalle Sahası', LastMinuteDifficulty.normal, false),
+    CareerLevelInfo('Mahalle Finali', 'Mahalle Sahası', LastMinuteDifficulty.normal, true),
+    CareerLevelInfo('Deplasman', 'Şehir Stadı', LastMinuteDifficulty.normal, false),
+    CareerLevelInfo('Yoğun Pres', 'Şehir Stadı', LastMinuteDifficulty.normal, false),
+    CareerLevelInfo('Kırılma Anı', 'Şehir Stadı', LastMinuteDifficulty.master, false),
+    CareerLevelInfo('Şehir Derbisi', 'Şehir Stadı', LastMinuteDifficulty.master, true),
+    CareerLevelInfo('Büyük Sahne', 'Meydan Arena', LastMinuteDifficulty.master, false),
+    CareerLevelInfo('Usta Savunma', 'Meydan Arena', LastMinuteDifficulty.master, false),
+    CareerLevelInfo('Kupa Gecesi', 'Meydan Arena', LastMinuteDifficulty.master, false),
+    CareerLevelInfo('Meydan Finali', 'Meydan Arena', LastMinuteDifficulty.master, true),
   ];
 }
 
@@ -93,127 +34,181 @@ class CareerNode extends StatelessWidget {
     required this.stars,
     required this.unlocked,
     required this.onTap,
+    this.animationValue = 1.0,
   });
+  
   final int number, stars;
   final CareerLevelInfo info;
   final bool unlocked;
   final VoidCallback onTap;
+  final double animationValue;
+
   @override
-  Widget build(BuildContext context) => GestureDetector(
-    onTap: unlocked
-        ? () {
-            gameStore.tap(GameSound.select);
-            onTap();
-          }
-        : null,
-    child: SizedBox(
-      width: 84,
+  Widget build(BuildContext context) {
+    const gold = Color(0xFFFFD166);
+    final isBoss = info.boss;
+    
+    final isLeft = (number - 1) % 2 == 0;
+    
+    final textBox = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.black87,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: unlocked ? gold.withValues(alpha: 0.5) : Colors.white24),
+      ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 250),
-            width: info.boss ? 62 : 54,
-            height: info.boss ? 62 : 54,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: unlocked
-                  ? (info.boss ? const Color(0xFFFFD166) : panel2)
-                  : const Color(0xFF202723),
-              border: Border.all(
-                color: unlocked
-                    ? (info.boss ? const Color(0xFFFFD166) : green)
-                    : Colors.white12,
-                width: 2,
-              ),
-              boxShadow: unlocked
-                  ? [
-                      BoxShadow(
-                        color: (info.boss ? const Color(0xFFFFD166) : green)
-                            .withValues(alpha: .24),
-                        blurRadius: 15,
-                      ),
-                    ]
-                  : null,
-            ),
-            child: Icon(
-              info.boss
-                  ? Icons.emoji_events_rounded
-                  : unlocked
-                  ? Icons.sports_soccer_rounded
-                  : Icons.lock_rounded,
-              color: unlocked ? (info.boss ? bg : green) : muted,
-              size: info.boss ? 31 : 25,
-            ),
-          ),
-          const SizedBox(height: 3),
           Text(
-            '$number. ${info.title}',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
+            info.title,
             style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
               color: unlocked ? Colors.white : muted,
-              fontSize: 8,
-              fontWeight: FontWeight.w800,
             ),
           ),
           if (unlocked)
             Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: List.generate(
                 3,
                 (i) => Icon(
                   i < stars ? Icons.star_rounded : Icons.star_border_rounded,
-                  color: const Color(0xFFFFD166),
+                  color: gold,
                   size: 12,
                 ),
               ),
-            ),
+            )
         ],
       ),
-    ),
-  );
+    );
+
+    
+    return Transform.scale(
+      scale: animationValue,
+      child: Opacity(
+        opacity: (animationValue * (unlocked ? 1.0 : 0.6)).clamp(0.0, 1.0),
+        child: GestureDetector(
+          onTap: unlocked
+              ? () {
+                  gameStore.tap(GameSound.select);
+                  onTap();
+                }
+              : null,
+          child: Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.center,
+            children: [
+              Container(
+                width: isBoss ? 70 : 60,
+                height: isBoss ? 70 : 60,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: unlocked
+                      ? (isBoss ? gold.withValues(alpha: 0.2) : Colors.black87)
+                      : Colors.black54,
+                  border: Border.all(
+                    color: unlocked
+                        ? (isBoss ? gold.withValues(alpha: 0.8) : Colors.white60)
+                        : Colors.white24,
+                    width: isBoss ? 3 : 2,
+                  ),
+                  boxShadow: unlocked
+                      ? [
+                          BoxShadow(
+                            color: (isBoss ? gold : Colors.white).withValues(alpha: 0.3),
+                            blurRadius: 15,
+                            spreadRadius: 2,
+                          )
+                        ]
+                      : null,
+                ),
+                child: Center(
+                  child: Icon(
+                    isBoss
+                        ? Icons.emoji_events_rounded
+                        : unlocked
+                            ? Icons.sports_soccer_rounded
+                            : Icons.lock_rounded,
+                    color: unlocked ? (isBoss ? gold : Colors.white) : muted,
+                    size: isBoss ? 32 : 28,
+                  ),
+                ),
+              ),
+              Positioned(
+                left: isLeft ? (isBoss ? 70.0 : 60.0) : null,
+                right: isLeft ? null : (isBoss ? 70.0 : 60.0),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (!isLeft) textBox,
+                    Container(
+                      width: 12,
+                      height: 2,
+                      color: unlocked ? gold.withValues(alpha: 0.5) : Colors.white24,
+                    ),
+                    if (isLeft) textBox,
+                  ],
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class CareerPathPainter extends CustomPainter {
-  CareerPathPainter({required this.points, required this.stars});
   final List<Offset> points;
-  final List<int> stars;
+  final List<bool> unlockedStatus;
+  
+  CareerPathPainter(this.points, this.unlockedStatus);
+
   @override
   void paint(Canvas canvas, Size size) {
-    for (var i = 1; i < points.length; i++) {
-      final unlocked = stars[i - 1] > 0;
-      final paint = Paint()
-        ..color = unlocked ? green.withValues(alpha: .8) : Colors.white12
-        ..strokeWidth = unlocked ? 5 : 3
-        ..style = PaintingStyle.stroke
-        ..strokeCap = StrokeCap.round;
-      final path = Path()
-        ..moveTo(points[i - 1].dx, points[i - 1].dy)
-        ..cubicTo(
-          size.width / 2,
-          points[i - 1].dy - 22,
-          size.width / 2,
-          points[i].dy + 22,
-          points[i].dx,
-          points[i].dy,
-        );
-      canvas.drawPath(path, paint);
+    if (points.isEmpty) return;
+    
+    final paintLocked = Paint()
+      ..color = Colors.white24
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4
+      ..strokeCap = StrokeCap.round;
+
+    final paintUnlocked = Paint()
+      ..color = const Color(0xFFFFD166)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 5
+      ..strokeCap = StrokeCap.round;
+      
+    final glowPaint = Paint()
+      ..color = const Color(0xFFFFD166).withValues(alpha: 0.3)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 12
+      ..strokeCap = StrokeCap.round
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
+
+    for (int i = 0; i < points.length - 1; i++) {
+      final p1 = points[i];
+      final p2 = points[i + 1];
+      final isUnlocked = unlockedStatus[i + 1];
+
+      // Adjust gap so it perfectly touches the edge without penetrating the circle
+      final startY = p1.dy + 31;
+      final endY = p2.dy - 31;
+
+      final path = Path();
+      path.moveTo(p1.dx, startY);
+      
+      final midY = (p1.dy + p2.dy) / 2;
+      path.cubicTo(p1.dx, midY, p2.dx, midY, p2.dx, endY);
+      
+      canvas.drawPath(path, isUnlocked ? glowPaint : paintLocked);
+      canvas.drawPath(path, isUnlocked ? paintUnlocked : paintLocked);
     }
-    final glow = Paint()
-      ..shader =
-          const RadialGradient(
-            colors: [Color(0x2271F39A), Colors.transparent],
-          ).createShader(
-            Rect.fromCircle(
-              center: Offset(size.width / 2, size.height / 2),
-              radius: size.width,
-            ),
-          );
-    canvas.drawRect(Offset.zero & size, glow);
   }
 
   @override
-  bool shouldRepaint(covariant CareerPathPainter old) =>
-      old.stars.join() != stars.join();
+  bool shouldRepaint(covariant CareerPathPainter oldDelegate) => true;
 }
