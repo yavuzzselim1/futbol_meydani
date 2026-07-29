@@ -680,9 +680,34 @@ class GameStore extends ChangeNotifier {
   }
 
   Future<void> savePlayerName(String name) async {
+    if (playerName == name) return;
+    
+    // Yalnızca isim daha önce belirlenmişse (değiştiriliyorsa) para düş.
+    // İlk defa isim belirlerken para düşmez.
+    if (playerName.isNotEmpty) {
+      if (coins >= 500) {
+        addCoins(-500);
+      } else {
+        return; // Yeterli para yoksa isim değiştirme. (UI'da engellenecek)
+      }
+    }
+
     playerName = name;
     await prefs.setString('player_name', name);
     notifyListeners();
+
+    final client = SupabaseState.client;
+    final user = client?.auth.currentUser;
+    if (client != null && user != null) {
+      try {
+        await client
+            .from('online_profiles')
+            .update({'display_name': name})
+            .eq('id', user.id);
+      } catch (e) {
+        debugPrint('savePlayerName error: $e');
+      }
+    }
   }
 
   int get careerStars =>
