@@ -85,6 +85,8 @@ class CareerNode extends StatelessWidget {
     );
 
     
+    final isCompleted = stars > 0;
+
     return Transform.scale(
       scale: animationValue,
       child: Opacity(
@@ -101,25 +103,25 @@ class CareerNode extends StatelessWidget {
             alignment: Alignment.center,
             children: [
               Container(
-                width: isBoss ? 70 : 60,
-                height: isBoss ? 70 : 60,
+                width: isBoss ? 70 : (isCompleted ? 66 : 60),
+                height: isBoss ? 70 : (isCompleted ? 66 : 60),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: unlocked
-                      ? (isBoss ? gold.withValues(alpha: 0.2) : Colors.black87)
+                      ? (isBoss ? gold.withValues(alpha: 0.2) : (isCompleted ? gold.withValues(alpha: 0.2) : Colors.black87))
                       : Colors.black54,
                   border: Border.all(
                     color: unlocked
-                        ? (isBoss ? gold.withValues(alpha: 0.8) : Colors.white60)
+                        ? (isBoss ? gold.withValues(alpha: 0.8) : (isCompleted ? gold.withValues(alpha: 0.8) : Colors.white60))
                         : Colors.white24,
-                    width: isBoss ? 3 : 2,
+                    width: isBoss ? 3 : (isCompleted ? 3 : 2),
                   ),
                   boxShadow: unlocked
                       ? [
                           BoxShadow(
-                            color: (isBoss ? gold : Colors.white).withValues(alpha: 0.3),
-                            blurRadius: 15,
-                            spreadRadius: 2,
+                            color: (isBoss ? gold : (isCompleted ? gold : Colors.white)).withValues(alpha: isCompleted ? 0.5 : 0.3),
+                            blurRadius: isCompleted ? 18 : 15,
+                            spreadRadius: isCompleted ? 3 : 2,
                           )
                         ]
                       : null,
@@ -131,8 +133,8 @@ class CareerNode extends StatelessWidget {
                         : unlocked
                             ? Icons.sports_soccer_rounded
                             : Icons.lock_rounded,
-                    color: unlocked ? (isBoss ? gold : Colors.white) : muted,
-                    size: isBoss ? 32 : 28,
+                    color: unlocked ? (isBoss ? gold : (isCompleted ? gold : Colors.white)) : muted,
+                    size: isBoss ? 32 : (isCompleted ? 32 : 28),
                   ),
                 ),
               ),

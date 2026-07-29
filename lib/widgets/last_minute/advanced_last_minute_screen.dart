@@ -445,6 +445,9 @@ class _AdvancedLastMinuteScreenState extends State<AdvancedLastMinuteScreen>
               builder: (context, box) {
                 final compact = box.maxHeight < 720;
                 return SingleChildScrollView(
+                  physics: phase == AdvancedMinutePhase.finished
+                      ? const NeverScrollableScrollPhysics()
+                      : null,
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                   child: ConstrainedBox(
                     constraints: BoxConstraints(minHeight: box.maxHeight - 32),
@@ -490,6 +493,7 @@ class _AdvancedLastMinuteScreenState extends State<AdvancedLastMinuteScreen>
                 winnerName: 'GOOOL!',
                 draw: false,
                 perfect: true,
+                confettiOnly: true,
               ),
             ),
           ),
@@ -1069,24 +1073,33 @@ class _AdvancedLastMinuteScreenState extends State<AdvancedLastMinuteScreen>
     );
   }
 
-  Widget _resultCard() => _GlassCard(
-    cardKey: const ValueKey('advancedResult'),
-    child: Column(
+  Widget _resultCard() {
+    final cardContent = Column(
       children: [
         Icon(
           goal ? Icons.emoji_events_rounded : Icons.flag_rounded,
           color: goal ? const Color(0xFFFFD166) : Colors.white38,
-          size: 48,
+          size: goal ? 54 : 48,
         ),
         const SizedBox(height: 5),
         Text(
           goal ? 'SON DAKİKA GOLÜ!' : 'HÜCUM SONA ERDİ',
           textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w900, color: Colors.white),
+          style: TextStyle(
+            fontSize: goal ? 28 : 25, 
+            fontWeight: FontWeight.w900, 
+            color: Colors.white,
+          ),
         ),
         const SizedBox(height: 4),
-        Text(feedback, style: const TextStyle(color: Colors.white70)),
-        const SizedBox(height: 11),
+        Text(
+          feedback, 
+          style: TextStyle(
+            color: goal ? Colors.white : Colors.white70,
+            fontSize: goal ? 16 : 14,
+          ),
+        ),
+        const SizedBox(height: 14),
         Row(
           children: [
             Expanded(
@@ -1103,7 +1116,7 @@ class _AdvancedLastMinuteScreenState extends State<AdvancedLastMinuteScreen>
           ],
         ),
         if (widget.careerLevel != null && goal) ...[
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(
@@ -1113,30 +1126,30 @@ class _AdvancedLastMinuteScreenState extends State<AdvancedLastMinuteScreen>
                     ? Icons.star_rounded
                     : Icons.star_border_rounded,
                 color: const Color(0xFFFFD166),
-                size: 30,
+                size: 34,
               ),
             ),
           ),
         ],
-        const SizedBox(height: 9),
+        const SizedBox(height: 12),
         Text(
           '${dailyCourse ? 'Günlük Parkur' : 'Serbest Koşu'} • ${difficulty.label} • ${route.length} yol seçimi',
           style: const TextStyle(
             color: Color(0xFFE2B75A),
-            fontSize: 10,
+            fontSize: 11,
             fontWeight: FontWeight.w800,
           ),
         ),
-        const SizedBox(height: 3),
+        const SizedBox(height: 4),
         Text(
           '$careerRank • ${gameStore.lastMinuteGoals} kariyer golü',
           style: const TextStyle(
             color: Color(0xFFFFD166),
-            fontSize: 10,
+            fontSize: 11,
             fontWeight: FontWeight.w900,
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 20),
         if (widget.careerLevel != null && goal && widget.careerLevel! + 1 < CareerLevelInfo.levels.length) ...[
           _PremiumButton(
             label: 'Sonraki Bölüm',
@@ -1213,8 +1226,38 @@ class _AdvancedLastMinuteScreenState extends State<AdvancedLastMinuteScreen>
           ],
         ),
       ],
-    ),
-  );
+    );
+
+    if (goal) {
+      return Container(
+        key: const ValueKey('advancedResult'),
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF6A4700), Color(0xFF1E1200)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: const Color(0xFFFFD166), width: 2),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x33FFD166),
+              blurRadius: 20,
+              spreadRadius: 2,
+            ),
+          ],
+        ),
+        child: cardContent,
+      );
+    }
+
+    return _GlassCard(
+      cardKey: const ValueKey('advancedResult'),
+      child: cardContent,
+    );
+  }
 }
 
 class _PathButton extends StatelessWidget {

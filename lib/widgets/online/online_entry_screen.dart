@@ -733,8 +733,8 @@ class _JoinModalContentState extends State<_JoinModalContent> {
       mainAxisSize: MainAxisSize.min,
       children: [
         SizedBox(
-          height: 220,
-          width: double.infinity,
+          height: 260,
+          width: 260,
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: MobileScanner(

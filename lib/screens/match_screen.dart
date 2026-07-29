@@ -992,9 +992,10 @@ class WinnerCelebration extends StatefulWidget {
     required this.winnerName,
     required this.draw,
     this.perfect = false,
+    this.confettiOnly = false,
   });
   final String winnerName;
-  final bool draw, perfect;
+  final bool draw, perfect, confettiOnly;
   @override
   State<WinnerCelebration> createState() => _WinnerCelebrationState();
 }
@@ -1042,10 +1043,11 @@ class _WinnerCelebrationState extends State<WinnerCelebration>
                   ),
                 ),
               ),
-              Transform.scale(
-                scale: entrance,
-                child: Container(
-                  width: min(screenWidth * .78, 350.0),
+              if (!widget.confettiOnly)
+                Transform.scale(
+                  scale: entrance,
+                  child: Container(
+                    width: min(screenWidth * .78, 350.0),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24,
                     vertical: 22,

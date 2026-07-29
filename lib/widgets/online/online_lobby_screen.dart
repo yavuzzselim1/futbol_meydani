@@ -150,17 +150,20 @@ class OnlineLobbyScreen extends StatelessWidget {
         }
       },
       child: Scaffold(
+        extendBodyBehindAppBar: true,
+        backgroundColor: Colors.transparent,
         appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
           title: const Text('Bekleme Odası'),
           actions: [
             IconButton(
-              tooltip: 'Odadan ayrıl',
-              onPressed: () async {
-                await repository.leaveRoom(session);
-                await clearActiveOnlineSession();
-                if (context.mounted) Navigator.pop(context);
+              tooltip: 'Davet Et',
+              onPressed: () {
+                gameStore.tap(GameSound.select);
+                _showInviteBottomSheet(context, session.roomCode);
               },
-              icon: const Icon(Icons.logout_rounded, color: Color(0xFFFF7777)),
+              icon: const Icon(Icons.person_add_rounded, color: Colors.white),
             ),
           ],
         ),
@@ -255,9 +258,9 @@ class OnlineLobbyScreen extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         decoration: BoxDecoration(
-                          color: panel,
+                          color: Colors.black.withValues(alpha: 0.35),
                           borderRadius: BorderRadius.circular(18),
-                          border: Border.all(color: const Color(0x5571F39A)),
+                          border: Border.all(color: Colors.white24),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -280,31 +283,7 @@ class OnlineLobbyScreen extends StatelessWidget {
                         ),
                       ),
                     ),
-                    if (isLeader) ...[
-                      const SizedBox(height: 20),
-                      Center(
-                        child: Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: QrImageView(
-                            data: room.code,
-                            version: QrVersions.auto,
-                            size: 180.0,
-                            eyeStyle: const QrEyeStyle(
-                              eyeShape: QrEyeShape.square,
-                              color: Colors.black87,
-                            ),
-                            dataModuleStyle: const QrDataModuleStyle(
-                              dataModuleShape: QrDataModuleShape.square,
-                              color: Colors.black87,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+
                     const SizedBox(height: 21),
                     ProfilePlayerTile(
                       player: room.host,
@@ -318,18 +297,13 @@ class OnlineLobbyScreen extends StatelessWidget {
                         label: 'RAKİP',
                         isMe: room.guest!.id == session.playerId,
                       ),
-                      if (!(isLeader
-                          ? room.guest!.connected
-                          : room.host.connected)) ...[
-                        const SizedBox(height: 9),
-                        const _OpponentConnectionNotice(),
-                      ],
+
                     ] else
                       Container(
                         height: 82,
                         decoration: BoxDecoration(
-                          color: panel.withValues(alpha: .55),
-                          borderRadius: BorderRadius.circular(18),
+                          color: Colors.black.withValues(alpha: 0.25),
+                          borderRadius: BorderRadius.circular(20),
                           border: Border.all(color: Colors.white10),
                         ),
                         child: const Row(
@@ -408,62 +382,34 @@ class OnlineLobbyScreen extends StatelessWidget {
                         ),
                       )
                     else ...[
-                      SwitchListTile(
-                        value: me?.ready ?? false,
-                        onChanged: me == null
-                            ? null
-                            : (value) {
-                                gameStore.tap(GameSound.select);
-                                changeReady(context, value);
-                              },
-                        tileColor: panel,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(17),
+                      if (!isLeader) ...[
+                        Center(
+                          child: OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: me?.ready == true ? green : Colors.white,
+                              side: BorderSide(color: me?.ready == true ? green : Colors.white38),
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                            ),
+                            icon: Icon(
+                              me?.ready == true ? Icons.check_circle_rounded : Icons.sports_soccer_rounded,
+                              size: 18,
+                            ),
+                            label: Text(
+                              me?.ready == true ? 'HAZIRIM (İptal Et)' : 'HAZIR OL',
+                              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+                            ),
+                            onPressed: me == null ? null : () {
+                              gameStore.tap(GameSound.select);
+                              changeReady(context, !(me.ready));
+                            },
+                          ),
                         ),
-                        secondary: Icon(
-                          me?.ready == true
-                              ? Icons.check_circle_rounded
-                              : Icons.hourglass_bottom_rounded,
-                          color: me?.ready == true ? green : muted,
-                        ),
-                        title: Text(
-                          me?.ready == true
-                              ? 'Hazırsın'
-                              : 'Hazır olduğunu bildir',
-                          style: const TextStyle(fontWeight: FontWeight.w900),
-                        ),
-                        subtitle: const Text(
-                          'Kadro düellosu iki oyuncu da hazır olunca başlayabilir.',
-                          style: TextStyle(color: muted, fontSize: 10),
-                        ),
-                      ),
-                      if (isLeader &&
-                          room.guest == null &&
-                          repository is LocalOnlineGameRepository) ...[
-                        const SizedBox(height: 10),
-                        OutlinedButton.icon(
-                          onPressed: () => addTestRival(context),
-                          icon: const Icon(Icons.science_outlined),
-                          label: const Text('Yerel Test Rakibi Ekle'),
-                        ),
-                      ],
-                      const SizedBox(height: 13),
-                      if (isLeader)
-                        PrimaryButton(
-                          label: room.bothPlayersReady
-                              ? 'Meydan Kadrosunu Başlat'
-                              : 'İki Oyuncu Hazır Olmalı',
-                          icon: Icons.play_arrow_rounded,
-                          onPressed: room.bothPlayersReady
-                              ? () => startMatch(context)
-                              : null,
-                        )
-                      else
+                        const SizedBox(height: 12),
                         Center(
                           child: Text(
-                            room.bothPlayersReady
+                            room.guest?.ready == true
                                 ? 'Oda kurucusunun başlatması bekleniyor…'
-                                : 'İki oyuncunun hazır olması bekleniyor…',
+                                : 'Hazır olman bekleniyor…',
                             style: const TextStyle(
                               color: muted,
                               fontSize: 11,
@@ -471,6 +417,33 @@ class OnlineLobbyScreen extends StatelessWidget {
                             ),
                           ),
                         ),
+                      ] else ...[
+                        if (room.guest == null && repository is LocalOnlineGameRepository) ...[
+                          const SizedBox(height: 10),
+                          OutlinedButton.icon(
+                            onPressed: () => addTestRival(context),
+                            icon: const Icon(Icons.science_outlined),
+                            label: const Text('Yerel Test Rakibi Ekle'),
+                          ),
+                        ],
+                        const SizedBox(height: 13),
+                        PrimaryButton(
+                          label: room.guest?.ready == true
+                              ? 'Meydan Kadrosunu Başlat'
+                              : 'Rakibin Hazır Olması Bekleniyor',
+                          icon: Icons.play_arrow_rounded,
+                          onPressed: room.guest?.ready == true
+                              ? () async {
+                                  if (me?.ready != true) {
+                                    await changeReady(context, true);
+                                  }
+                                  if (context.mounted) {
+                                    startMatch(context);
+                                  }
+                                }
+                              : null,
+                        ),
+                      ],
                     ],
                   ],
                 );
@@ -483,28 +456,208 @@ class OnlineLobbyScreen extends StatelessWidget {
   );
 }
 
-class _OpponentConnectionNotice extends StatelessWidget {
-  const _OpponentConnectionNotice();
+  void _showInviteBottomSheet(BuildContext context, String roomCode) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _InviteBottomSheetContent(roomCode: roomCode),
+    );
+  }
+
+class _InviteBottomSheetContent extends StatefulWidget {
+  final String roomCode;
+  const _InviteBottomSheetContent({required this.roomCode});
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
-    decoration: BoxDecoration(
-      color: const Color(0xFF5B421D),
-      borderRadius: BorderRadius.circular(14),
-      border: Border.all(color: const Color(0xFFFFC85E)),
+  State<_InviteBottomSheetContent> createState() => _InviteBottomSheetContentState();
+}
+
+class _InviteBottomSheetContentState extends State<_InviteBottomSheetContent> {
+  int _mode = 0; // 0: menu, 1: qr, 2: friends
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: Material(
+        type: MaterialType.transparency,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.75),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            border: Border.all(color: Colors.white10),
+          ),
+          child: SafeArea(
+            child: AnimatedSize(
+            duration: const Duration(milliseconds: 350),
+            curve: Curves.easeInOutCubic,
+            alignment: Alignment.topCenter,
+            clipBehavior: Clip.hardEdge,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              layoutBuilder: (currentChild, previousChildren) {
+                return Stack(
+                  alignment: Alignment.topCenter,
+                  children: <Widget>[
+                    ...previousChildren,
+                    if (currentChild != null) currentChild,
+                  ],
+                );
+              },
+              child: _buildContent(),
+            ),
+          ),
+        ),
+      ),
     ),
-    child: const Row(
+  );
+}
+
+  Widget _buildContent() {
+    if (_mode == 1) return _buildQrCode();
+    if (_mode == 2) return _buildFriends();
+    return _buildMenu();
+  }
+
+  Widget _buildMenu() {
+    return Column(
+      key: const ValueKey('menu'),
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.wifi_off_rounded, color: Color(0xFFFFC85E)),
-        SizedBox(width: 9),
-        Expanded(
+        const Text(
+          'Rakip Davet Et',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w900,
+            color: Colors.white,
+          ),
+        ),
+        const SizedBox(height: 24),
+        ListTile(
+          onTap: () => setState(() => _mode = 2),
+          leading: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.people_alt_rounded, color: Colors.white),
+          ),
+          title: const Text('Arkadaşlarından Seç', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16, color: Colors.white)),
+          subtitle: const Text('Kayıtlı arkadaşlarını odaya çağır', style: TextStyle(color: Colors.white54, fontSize: 13)),
+        ),
+        const SizedBox(height: 12),
+        ListTile(
+          onTap: () => setState(() => _mode = 1),
+          leading: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.qr_code_rounded, color: Colors.white),
+          ),
+          title: const Text('QR Kod Göster', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16, color: Colors.white)),
+          subtitle: const Text('Yanındaki arkadaşına kodu okut', style: TextStyle(color: Colors.white54, fontSize: 13)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildQrCode() {
+    return Column(
+      key: const ValueKey('qr'),
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          children: [
+            IconButton(
+              icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+              onPressed: () => setState(() => _mode = 0),
+            ),
+            const Expanded(
+              child: Text(
+                'Davet QR Kodu',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            const SizedBox(width: 48),
+          ],
+        ),
+        const SizedBox(height: 24),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: QrImageView(
+            data: widget.roomCode,
+            version: QrVersions.auto,
+            size: 240.0,
+            eyeStyle: const QrEyeStyle(
+              eyeShape: QrEyeShape.square,
+              color: Colors.black87,
+            ),
+            dataModuleStyle: const QrDataModuleStyle(
+              dataModuleShape: QrDataModuleShape.square,
+              color: Colors.black87,
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        const Text(
+          'Arkadaşının cihazından "QR ile Katıl" seçeneğiyle okutmasını iste.',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.white70, fontSize: 14),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFriends() {
+    return Column(
+      key: const ValueKey('friends'),
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          children: [
+            IconButton(
+              icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+              onPressed: () => setState(() => _mode = 0),
+            ),
+            const Expanded(
+              child: Text(
+                'Arkadaş Davet Et',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            const SizedBox(width: 48),
+          ],
+        ),
+        const SizedBox(height: 24),
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 40),
           child: Text(
-            'Rakibin bağlantısı kesildi. Odayı koruyoruz; yeniden bağlanması bekleniyor.',
-            style: TextStyle(fontWeight: FontWeight.w800),
+            'Arkadaş listesi çok yakında burada olacak!',
+            style: TextStyle(color: Colors.white54, fontSize: 16),
           ),
         ),
       ],
-    ),
-  );
+    );
+  }
 }

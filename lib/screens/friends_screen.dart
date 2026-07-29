@@ -708,7 +708,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                     const Text('Bağlantı kurulamadı. Online değilsin.', style: TextStyle(color: Colors.white54, fontSize: 16)),
                   ])))
                 : _isLoading
-                  ? const Center(child: CircularProgressIndicator(color: green))
+                  ? const _SkeletonLoadingList()
                   : _friendsList.isEmpty
                     ? Center(child: SingleChildScrollView(child: Column(mainAxisAlignment: MainAxisAlignment.center, mainAxisSize: MainAxisSize.min, children: [
                         Icon(Icons.people_alt_rounded, size: 64, color: Colors.white.withValues(alpha: 0.1)),
@@ -1282,6 +1282,99 @@ class _InviteWaitingLobbyState extends State<_InviteWaitingLobby> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _SkeletonLoadingList extends StatefulWidget {
+  const _SkeletonLoadingList({super.key});
+
+  @override
+  State<_SkeletonLoadingList> createState() => _SkeletonLoadingListState();
+}
+
+class _SkeletonLoadingListState extends State<_SkeletonLoadingList> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200))..repeat(reverse: true);
+    _animation = Tween<double>(begin: 0.3, end: 1.0).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _animation,
+      child: ListView.builder(
+        itemCount: 5,
+        itemBuilder: (ctx, i) {
+          return Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.04),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.08),
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF2A2A2A),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 120,
+                        height: 16,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF2A2A2A),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        width: 70,
+                        height: 12,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF2A2A2A),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  width: 90,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2A2A2A),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
