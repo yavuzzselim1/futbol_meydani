@@ -4,6 +4,7 @@ import '../../online/online_game.dart';
 
 import '../../constants.dart';
 import '../../widgets/common_widgets.dart';
+import '../../services/game_store.dart';
 
 class OnlineProfileScreen extends StatelessWidget {
   const OnlineProfileScreen({super.key, required this.repository});
@@ -221,24 +222,38 @@ class ProfilePlayerTile extends StatelessWidget {
   final String label;
   final bool isMe;
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(15),
-    decoration: BoxDecoration(
-      color: panel,
-      borderRadius: BorderRadius.circular(18),
-      border: Border.all(
-        color: isMe ? green.withValues(alpha: .55) : Colors.white10,
-      ),
-    ),
-    child: Row(
-      children: [
-        CircleAvatar(
-          backgroundColor: player.ready ? green : panel2,
-          child: Icon(
-            player.ready ? Icons.check_rounded : Icons.person_rounded,
-            color: player.ready ? bg : muted,
-          ),
+  Widget build(BuildContext context) {
+    String? imagePath;
+    if (player.avatarId != null && player.avatarId != 'default') {
+      final avatar = GameStore.avatars.firstWhere(
+        (a) => a['id'] == player.avatarId,
+        orElse: () => <String, dynamic>{},
+      );
+      if (avatar.isNotEmpty) {
+        imagePath = avatar['imagePath'] as String?;
+      }
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: panel,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isMe ? green.withValues(alpha: .55) : Colors.white10,
         ),
+      ),
+      child: Row(
+        children: [
+          imagePath != null
+              ? ClipOval(child: Image.asset(imagePath, width: 40, height: 40, fit: BoxFit.cover))
+              : CircleAvatar(
+                  backgroundColor: player.ready ? green : panel2,
+                  child: Icon(
+                    player.ready ? Icons.check_rounded : Icons.person_rounded,
+                    color: player.ready ? bg : muted,
+                  ),
+                ),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -284,4 +299,5 @@ class ProfilePlayerTile extends StatelessWidget {
       ],
     ),
   );
+}
 }

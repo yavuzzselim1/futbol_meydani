@@ -23,7 +23,7 @@ class ProfileScreen extends StatelessWidget {
           : 'Yeni Rakip';
 
       final avatarData = GameStore.avatars.firstWhere((a) => a['id'] == gameStore.currentAvatar, orElse: () => GameStore.avatars.first);
-      final IconData avatarIcon = avatarData['icon'] as IconData;
+      final String avatarImage = avatarData['imagePath'] as String;
       final Color avatarColor = avatarData['color'] as Color;
 
       return Scaffold(
@@ -70,31 +70,8 @@ class ProfileScreen extends StatelessWidget {
                       alignment: Alignment.center,
                       clipBehavior: Clip.none,
                       children: [
-                        // Avatar Glass Background
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(40),
-                          child: BackdropFilter(
-                            filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                            child: Container(
-                              width: 120,
-                              height: 120,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(40),
-                                color: Colors.white.withValues(alpha: 0.03),
-                                border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 1.5),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: avatarColor.withValues(alpha: 0.2),
-                                    blurRadius: 30,
-                                    spreadRadius: -10,
-                                  ),
-                                ],
-                              ),
-                              child: Center(
-                                child: Icon(avatarIcon, color: avatarColor, size: 60),
-                              ),
-                            ),
-                          ),
+                        ClipOval(
+                          child: Image.asset(avatarImage, width: 120, height: 120, fit: BoxFit.cover),
                         ),
                         // Level Badge
                         Positioned(

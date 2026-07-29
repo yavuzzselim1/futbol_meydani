@@ -41,6 +41,7 @@ flutter:
     - assets/daily/
     - assets/icons/
     - assets/videos/
+    - assets/avatars/
 
 flutter_launcher_icons:
   android: true

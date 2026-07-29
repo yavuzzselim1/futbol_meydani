@@ -536,23 +536,21 @@ class _OnlineSquadScreenState extends State<OnlineSquadScreen> {
     double fontSize = 12,
     bool bold = true,
   }) {
-    IconData? icon;
-    Color? color;
+    String? imagePath;
     if (player.avatarId != null && player.avatarId != 'default') {
       final avatar = GameStore.avatars.firstWhere(
         (a) => a['id'] == player.avatarId,
         orElse: () => <String, dynamic>{},
       );
       if (avatar.isNotEmpty) {
-        icon = avatar['icon'] as IconData;
-        color = avatar['color'] as Color;
+        imagePath = avatar['imagePath'] as String?;
       }
     }
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (icon != null) ...[
-          Icon(icon, color: color, size: fontSize * 1.2),
+        if (imagePath != null) ...[
+          ClipOval(child: Image.asset(imagePath, width: fontSize * 1.5, height: fontSize * 1.5, fit: BoxFit.cover)),
           const SizedBox(width: 4),
         ],
         Text(

@@ -315,7 +315,8 @@ class _ShopScreenState extends State<ShopScreen> with TickerProviderStateMixin {
                       itemBuilder: (context, index) {
                         final item = items[index];
                         final color = item['color'] as Color;
-                        final icon = item['icon'] as IconData;
+                        final icon = item['icon'] as IconData?;
+                        final imagePath = item['imagePath'] as String?;
 
                         double diff = index - _pageOffset;
                         double scale = (1 - (diff.abs() * 0.15)).clamp(0.85, 1.0);
@@ -384,11 +385,16 @@ class _ShopScreenState extends State<ShopScreen> with TickerProviderStateMixin {
                                   Positioned(
                                     top: 40,
                                     right: -20,
-                                    child: Icon(
-                                      icon,
-                                      size: 160,
-                                      color: color.withValues(alpha: 0.15),
-                                    ),
+                                    child: imagePath != null 
+                                      ? Opacity(
+                                          opacity: 0.15,
+                                          child: ClipOval(child: Image.asset(imagePath, width: 160, height: 160, fit: BoxFit.cover)),
+                                        )
+                                      : Icon(
+                                          icon,
+                                          size: 160,
+                                          color: color.withValues(alpha: 0.15),
+                                        ),
                                   ),
 
                                   // Content
@@ -410,7 +416,9 @@ class _ShopScreenState extends State<ShopScreen> with TickerProviderStateMixin {
                                               ),
                                             ],
                                           ),
-                                          child: Icon(icon, color: Colors.white, size: 40),
+                                          child: imagePath != null
+                                              ? ClipOval(child: Image.asset(imagePath, width: 40, height: 40, fit: BoxFit.cover))
+                                              : Icon(icon, color: Colors.white, size: 40),
                                         ),
                                         const SizedBox(height: 24),
                                         Expanded(

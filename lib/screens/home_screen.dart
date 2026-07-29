@@ -25,6 +25,7 @@ import 'auth/onboarding_screen.dart' as auth;
 import '../widgets/home/home_widgets.dart';
 
 import '../services/supabase_state.dart';
+import '../services/game_store.dart';
 
 // â”€â”€â”€ Palette â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const _kNavy0 = Color(0xFF080F1A);
@@ -570,7 +571,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               child: _TopHud(
                 trophies: gameStore.trophies,
                 lastTrophies: _lastTrophies,
-                coins: gameStore.coins,
+                coins: gameStore.coins + gameStore.displayCoinsOffset,
                 lastCoins: _lastCoins,
                 level: gameStore.level,
                 playerName: gameStore.playerName,
@@ -626,6 +627,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 // ————————————————————————————————————————————————————————————————————————————————————————————————————
 // TOP HUD
 // ————————————————————————————————————————————————————————————————————————————————————————————————————
+final GlobalKey coinBadgeKey = GlobalKey();
+
 class _TopHud extends StatelessWidget {
   final int trophies, lastTrophies, coins, lastCoins, level;
   final String playerName;
@@ -680,8 +683,18 @@ class _TopHud extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        _GlassDropdownButton(
-          menuBuilder: (context, close) => ClipRRect(
+        Builder(
+          builder: (dropdownCtx) => _GlassDropdownButton(
+            onLongPress: (hideOriginal, showOriginal) {
+              final avatarData = GameStore.avatars.firstWhere(
+                (a) => a['id'] == gameStore.currentAvatar, 
+                orElse: () => GameStore.avatars.first
+              );
+              final String avatarImage = avatarData['imagePath'] as String;
+              final renderBox = dropdownCtx.findRenderObject() as RenderBox;
+              _showAvatarPreview(context, avatarImage, renderBox, hideOriginal, showOriginal);
+            },
+            menuBuilder: (context, close) => ClipRRect(
             borderRadius: BorderRadius.circular(20),
             child: BackdropFilter(
               filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
@@ -754,37 +767,24 @@ class _TopHud extends StatelessWidget {
           child: Stack(
             clipBehavior: Clip.none,
             children: [
-              // Avatar: outer border ring (gold) — no gradient here to avoid the error
-              Container(
-                width: 54,
-                height: 54,
-                decoration: _borderBox(
-                  radius: 27,
-                  borderColor: _kGold1,
-                  borderWidth: 2,
-                  shadows: [
-                    BoxShadow(
-                      color: _kGold1.withValues(alpha: 0.22),
-                      blurRadius: 8,
+              Builder(
+                builder: (context) {
+                  final avatarData = GameStore.avatars.firstWhere(
+                    (a) => a['id'] == gameStore.currentAvatar, 
+                    orElse: () => GameStore.avatars.first
+                  );
+                  final String avatarImage = avatarData['imagePath'] as String;
+                  final Color avatarColor = avatarData['color'] as Color;
+
+                  return ClipOval(
+                    child: Image.asset(
+                      avatarImage,
+                      width: 54,
+                      height: 54,
+                      fit: BoxFit.cover,
                     ),
-                  ],
-                ),
-                // Inner avatar circle: gradient, no border
-                child: ClipOval(
-                  child: Container(
-                    decoration: _gradientBox(
-                      colors: [
-                        const Color(0xFF1E2D42),
-                        const Color(0xFF0D1825),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.person_rounded,
-                      color: Color(0xBBFFFFFF),
-                      size: 28,
-                    ),
-                  ),
-                ),
+                  );
+                },
               ),
               // Level badge — bottom-right, overlapping avatar
               Positioned(
@@ -832,6 +832,7 @@ class _TopHud extends StatelessWidget {
               ),
             ],
           ),
+        ),
         ),
 
         const SizedBox(width: 10),
@@ -901,6 +902,7 @@ class _TopHud extends StatelessWidget {
             ),
             const SizedBox(width: 7),
             _ResourceBadge(
+              key: coinBadgeKey,
               icon: Icons.monetization_on_rounded,
               value: coins,
               oldValue: lastCoins,
@@ -928,6 +930,7 @@ class _ResourceBadge extends StatelessWidget {
   final VoidCallback? onAddTap;
 
   const _ResourceBadge({
+    super.key,
     required this.icon,
     required this.value,
     required this.oldValue,
@@ -1078,9 +1081,24 @@ class _DailyRewardBadge extends StatelessWidget {
     if (isClaimed) {
       gameStore.success();
       if (context.mounted) {
-        GlassToast.show(
+        final renderBox = context.findRenderObject() as RenderBox?;
+        final origin = renderBox?.localToGlobal(renderBox.size.center(Offset.zero));
+        
+        Offset? target;
+        if (coinBadgeKey.currentContext != null) {
+          final targetBox = coinBadgeKey.currentContext!.findRenderObject() as RenderBox?;
+          if (targetBox != null) {
+            target = targetBox.localToGlobal(targetBox.size.centerRight(Offset(-15, 0))); // exact center of the green plus button
+          }
+        }
+        showCoinBurstOverlay(
           context,
-          'GÜNLÜK ÖDÜL ALINDI! +500 MP KAZANDIN!\nYarın tekrar gelmeyi unutma.',
+          origin: origin,
+          target: target,
+          onCoinArrived: () {
+            gameStore.addDisplayCoinOffset(25);
+            gameStore.tap(GameSound.tap); // subtle tick sound for each coin
+          },
         );
       }
     } else {
@@ -1096,7 +1114,7 @@ class _DailyRewardBadge extends StatelessWidget {
       if (context.mounted) {
         GlassToast.show(
           context,
-          'Ödül henüz hazır değil. $hoursRemaining saat $minsRemaining dakika sonra tekrar gel!',
+          'Ödül henüz hazır değil. $hoursRemaining saat $minsRemaining dakika sonra tekrar gel!\n(İpucu: Test için butona basılı tutarak sıfırlayabilirsin)',
           isError: true,
         );
       }
@@ -1128,6 +1146,15 @@ class _DailyRewardBadge extends StatelessWidget {
 
         return GestureDetector(
           onTap: () => _claimReward(context),
+          onLongPress: () {
+            if (!isReady) {
+              gameStore.setLastDailyRewardTime(0);
+              gameStore.success();
+              if (context.mounted) {
+                GlassToast.show(context, 'Test: Ödül süresi sıfırlandı!');
+              }
+            }
+          },
           child: Container(
             decoration: _borderBox(
               radius: r,
@@ -2011,9 +2038,14 @@ class _GlassDropdownButton extends StatefulWidget {
   final Widget Function(
     BuildContext context,
     void Function({bool instant}) close,
-  )
-  menuBuilder;
-  const _GlassDropdownButton({required this.child, required this.menuBuilder});
+  ) menuBuilder;
+  final void Function(VoidCallback hideChild, VoidCallback showChild)? onLongPress;
+
+  const _GlassDropdownButton({
+    required this.child, 
+    required this.menuBuilder,
+    this.onLongPress,
+  });
 
   @override
   State<_GlassDropdownButton> createState() => _GlassDropdownButtonState();
@@ -2027,6 +2059,15 @@ class _GlassDropdownButtonState extends State<_GlassDropdownButton>
   late Animation<double> _scaleAnim;
   late Animation<double> _fadeAnim;
   late AnimationController _bounceCtrl;
+  bool _isHidden = false;
+
+  void _hideChild() {
+    if (mounted) setState(() => _isHidden = true);
+  }
+
+  void _showChild() {
+    if (mounted) setState(() => _isHidden = false);
+  }
 
   @override
   void initState() {
@@ -2124,21 +2165,145 @@ class _GlassDropdownButtonState extends State<_GlassDropdownButton>
 
   @override
   Widget build(BuildContext context) {
-    return Listener(
+    return GestureDetector(
       key: _key,
-      onPointerDown: (_) => _bounceCtrl.forward(),
-      onPointerUp: (_) {
+      behavior: HitTestBehavior.opaque,
+      onTapDown: (_) => _bounceCtrl.forward(),
+      onTapUp: (_) {
         _bounceCtrl.reverse();
         _toggleMenu();
       },
-      onPointerCancel: (_) => _bounceCtrl.reverse(),
-      child: ScaleTransition(
-        scale: Tween<double>(
-          begin: 1.0,
-          end: 0.9,
-        ).animate(CurvedAnimation(parent: _bounceCtrl, curve: Curves.easeOut)),
-        child: widget.child,
+      onTapCancel: () => _bounceCtrl.reverse(),
+      onLongPress: widget.onLongPress == null ? null : () => widget.onLongPress!(_hideChild, _showChild),
+      child: Opacity(
+        opacity: _isHidden ? 0.0 : 1.0,
+        child: ScaleTransition(
+          scale: Tween<double>(
+            begin: 1.0,
+            end: 0.9,
+          ).animate(CurvedAnimation(parent: _bounceCtrl, curve: Curves.easeOut)),
+          child: widget.child,
+        ),
       ),
     );
   }
 }
+
+void _showAvatarPreview(BuildContext context, String imagePath, RenderBox renderBox, VoidCallback onHideOriginal, VoidCallback onShowOriginal) {
+  OverlayState? overlayState = Overlay.of(context);
+  if (overlayState == null) return;
+  
+  final offset = renderBox.localToGlobal(Offset.zero);
+  final size = renderBox.size;
+  
+  onHideOriginal();
+  
+  OverlayEntry? entry;
+  entry = OverlayEntry(
+    builder: (ctx) {
+      return _AvatarPreviewOverlayWidget(
+        imagePath: imagePath,
+        startOffset: offset,
+        startSize: size,
+        onClose: () {
+          entry?.remove();
+          onShowOriginal();
+        },
+      );
+    },
+  );
+  
+  overlayState.insert(entry);
+}
+
+class _AvatarPreviewOverlayWidget extends StatefulWidget {
+  final String imagePath;
+  final Offset startOffset;
+  final Size startSize;
+  final VoidCallback onClose;
+  
+  const _AvatarPreviewOverlayWidget({
+    required this.imagePath,
+    required this.startOffset,
+    required this.startSize,
+    required this.onClose,
+  });
+
+  @override
+  State<_AvatarPreviewOverlayWidget> createState() => _AvatarPreviewOverlayWidgetState();
+}
+
+class _AvatarPreviewOverlayWidgetState extends State<_AvatarPreviewOverlayWidget> with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _anim;
+  
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this, 
+      duration: const Duration(milliseconds: 350),
+      reverseDuration: const Duration(milliseconds: 300),
+    );
+    _anim = CurvedAnimation(parent: _ctrl, curve: Curves.easeOutBack, reverseCurve: Curves.easeInCubic);
+    
+    // Play a subtle sound on open
+    gameStore.tap();
+    _ctrl.forward();
+  }
+  
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+  
+  void _hide() {
+    _ctrl.reverse().then((_) => widget.onClose());
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: GestureDetector(
+            onTap: _hide,
+            behavior: HitTestBehavior.opaque,
+            child: AnimatedBuilder(
+              animation: _anim,
+              builder: (_, __) => Container(
+                color: Colors.black.withValues(alpha: _anim.value * 0.8),
+              ),
+            ),
+          ),
+        ),
+        AnimatedBuilder(
+          animation: _anim,
+          builder: (context, child) {
+            final screenSize = MediaQuery.of(context).size;
+            final targetSize = 320.0;
+            final targetOffset = Offset(
+              (screenSize.width - targetSize) / 2,
+              (screenSize.height - targetSize) / 2,
+            );
+            
+            final currentOffset = Offset.lerp(widget.startOffset, targetOffset, _anim.value)!;
+            final currentSize = ui.lerpDouble(widget.startSize.width, targetSize, _anim.value)!;
+            
+            return Positioned(
+              left: currentOffset.dx,
+              top: currentOffset.dy,
+              width: currentSize,
+              height: currentSize,
+              child: ClipOval(
+                child: Image.asset(widget.imagePath, fit: BoxFit.cover),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+

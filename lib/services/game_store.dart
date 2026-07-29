@@ -34,6 +34,7 @@ class GameStore extends ChangeNotifier {
 
   // Mağaza ve Ekonomi
   int coins = 0;
+  int displayCoinsOffset = 0;
   int trophies = 0;
   String friendCode = '';
   int lastDailyRewardTime = 0; // Epoch milliseconds
@@ -49,37 +50,37 @@ class GameStore extends ChangeNotifier {
   static final List<Map<String, dynamic>> avatars = [
     {
       'id': 'avatar_pro',
-      'title': 'PRO OYUNCU',
-      'desc': 'Profesyonel oyuncu avatarı',
+      'title': 'OYUNCU 1',
+      'desc': 'İlk oyuncu avatarı',
       'price': 500,
-      'icon': Icons.stars_rounded,
+      'imagePath': 'assets/avatars/player_1.png',
       'color': const Color(0xFFFFD166),
       'requirement': null,
     },
     {
       'id': 'avatar_captain',
-      'title': 'KAPTAN',
-      'desc': 'Kaptan bandı takan lider',
+      'title': 'OYUNCU 2',
+      'desc': 'İkinci oyuncu avatarı',
       'price': 750,
-      'icon': Icons.military_tech_rounded,
+      'imagePath': 'assets/avatars/player_2.png',
       'color': const Color(0xFF5EC8FF),
       'requirement': 'avatar_pro',
     },
     {
       'id': 'avatar_legend',
-      'title': 'EFSANE',
-      'desc': 'Meydan efsanesi avatarı',
+      'title': 'SAHA 1',
+      'desc': 'Saha 1 avatarı',
       'price': 1500,
-      'icon': Icons.workspace_premium_rounded,
+      'imagePath': 'assets/avatars/field_1.png',
       'color': const Color(0xFFFF6B6B),
       'requirement': 'avatar_captain',
     },
     {
       'id': 'avatar_ghost',
-      'title': 'HAYALET',
-      'desc': 'Gizemli hayalet avatarı',
+      'title': 'SAHA 2',
+      'desc': 'Saha 2 avatarı',
       'price': 2000,
-      'icon': Icons.blur_on_rounded,
+      'imagePath': 'assets/avatars/field_2.png',
       'color': const Color(0xFFB388FF),
       'requirement': 'avatar_legend',
     },
@@ -752,10 +753,16 @@ class GameStore extends ChangeNotifier {
     final now = DateTime.now().millisecondsSinceEpoch;
     if (lastDailyRewardTime == 0 || now - lastDailyRewardTime >= 86400000) {
       addCoins(500);
+      displayCoinsOffset = -500; // temporarily hide the coins for animation
       await setLastDailyRewardTime(now);
       return true;
     }
     return false;
+  }
+
+  void addDisplayCoinOffset(int amount) {
+    displayCoinsOffset += amount;
+    notifyListeners();
   }
 
   void addCoins(int amount) {

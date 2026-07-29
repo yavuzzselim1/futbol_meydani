@@ -377,23 +377,10 @@ class _AccountSubScreenState extends State<_AccountSubScreen> {
                     Builder(
                       builder: (ctx) {
                         final avatarData = GameStore.avatars.firstWhere((a) => a['id'] == gameStore.currentAvatar, orElse: () => GameStore.avatars.first);
-                        final IconData avatarIcon = avatarData['icon'] as IconData;
-                        final Color avatarColor = avatarData['color'] as Color;
+                        final String avatarImage = avatarData['imagePath'] as String;
 
-                        return Container(
-                          width: 100,
-                          height: 100,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white.withValues(alpha: 0.05),
-                            border: Border.all(color: avatarColor.withValues(alpha: 0.5), width: 2),
-                            boxShadow: [
-                              BoxShadow(color: avatarColor.withValues(alpha: 0.2), blurRadius: 20, spreadRadius: -5),
-                            ],
-                          ),
-                          child: Center(
-                            child: Icon(avatarIcon, color: avatarColor, size: 50),
-                          ),
+                        return ClipOval(
+                          child: Image.asset(avatarImage, width: 100, height: 100, fit: BoxFit.cover),
                         );
                       },
                     ),
@@ -513,21 +500,15 @@ class _AvatarSubScreen extends StatelessWidget {
             runSpacing: 12,
             children: GameStore.avatars.map((a) {
               final id = a['id'] as String;
-              final bool owned = gameStore.unlockedAvatars.contains(id);
               final bool active = gameStore.currentAvatar == id;
-              if (!owned && id != 'default') return const SizedBox.shrink();
 
               return GestureDetector(
-                onTap: owned ? () => gameStore.setCurrentAvatar(id) : null,
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: active ? const Color(0xFF71F39A).withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.05),
-                    border: Border.all(color: active ? const Color(0xFF71F39A) : Colors.transparent, width: 2),
-                    shape: BoxShape.circle,
+                onTap: () => gameStore.setCurrentAvatar(id),
+                child: Opacity(
+                  opacity: active ? 1.0 : 0.4,
+                  child: ClipOval(
+                    child: Image.asset(a['imagePath'] as String, width: 140, height: 140, fit: BoxFit.cover),
                   ),
-                  child: Icon(a['icon'] as IconData?, color: a['color'] as Color?, size: 40),
                 ),
               );
             }).toList(),
