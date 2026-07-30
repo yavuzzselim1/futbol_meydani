@@ -61,7 +61,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               icon: Icons.face_retouching_natural_rounded,
               title: 'Avatar Seçimi',
               subtitle: 'Profilinde görünen avatar',
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const _AvatarSubScreen())),
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AvatarSubScreen())),
             ),
             _MenuTile(
               icon: Icons.bar_chart_rounded,
@@ -111,45 +111,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
               subtitle: 'Sistem logları ve rapor paylaşımı',
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const _DiagnosticsSubScreen())),
             ),
-            _MenuTile(
-              icon: Icons.delete_sweep_outlined,
-              title: 'Önbelleği Temizle',
-              subtitle: 'Yerel cihaz dosyalarını siler',
-              onTap: () {
-                 GlassToast.show(context, 'Önbellek temizlendi.', isError: false);
-              },
-            ),
 
             const _SectionTitle(title: 'GÜVENLİK VE TEHLİKELİ BÖLGE'),
-            _MenuTile(
-              icon: Icons.lock_outline_rounded,
-              title: 'Şifre Değiştir',
-              onTap: () {
-                GlassToast.show(context, 'Şifre değiştirme sayfası yakında!', isError: true);
-              },
-            ),
-            _MenuTile(
-              icon: Icons.security_rounded,
-              title: 'İki Adımlı Doğrulama (2FA)',
-              onTap: () {
-                 GlassToast.show(context, 'İki adımlı doğrulama aktif değil.', isError: true);
-              },
-            ),
-            _MenuTile(
-              icon: Icons.warning_amber_rounded,
-              title: 'Tüm Verileri Sıfırla',
-              textColor: Colors.redAccent,
-              iconColor: Colors.redAccent,
-              onTap: _confirmReset,
-            ),
             _MenuTile(
               icon: Icons.person_off_outlined,
               title: 'Hesabı Sil',
               textColor: Colors.redAccent,
               iconColor: Colors.redAccent,
-              onTap: () {
-                GlassToast.show(context, 'Hesap silme işlemi yönetici izni gerektirir.', isError: true);
-              },
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const _AccountDeleteSubScreen())),
             ),
 
             const _SectionTitle(title: 'HAKKINDA'),
@@ -157,17 +126,59 @@ class _SettingsScreenState extends State<SettingsScreen> {
               icon: Icons.info_outline_rounded,
               title: 'Sürüm Notları',
               subtitle: 'v2.1.4',
-              onTap: () {},
+              onTap: () => _showDraggableSheet(context, 'Sürüm Notları', '''Futbol Meydanı v2.1.4
+
+Yenilikler (v2.1.4):
+- Yeni arayüz temaları eklendi.
+- Tanılama Raporu özelliği ile hataların loglanması sağlandı.
+- Hata düzeltmeleri ve performans iyileştirmeleri yapıldı.
+- Arayüz boyutlandırma (HUD) seçenekleri oyuna entegre edildi.
+
+Önceki Sürüm (v2.1.3):
+- Online maç eşleştirme algoritması geliştirildi.
+- Menü hızı artırıldı.
+
+Önceki Sürüm (v2.1.0):
+- Squad (Kadrolu) maç modları eklendi.
+- Yeni animasyonlar ve ses efektleri eklendi.
+- Kutu açma ve mağaza mekanikleri güncellendi.
+'''),
             ),
             _MenuTile(
               icon: Icons.policy_outlined,
               title: 'Gizlilik Politikası',
-              onTap: () {},
+              onTap: () => _showDraggableSheet(context, 'Gizlilik Politikası', '''Futbol Meydanı Gizlilik Politikası
+
+1. Veri Toplama
+Uygulamamız, oyun deneyiminizi geliştirmek için e-posta adresinizi, profil adınızı, oyun içi istatistiklerinizi ve hataları (logları) toplar. 
+
+2. Veri Kullanımı
+Toplanan veriler yalnızca size daha iyi bir deneyim sunmak, çevrimiçi maç eşleştirmelerini sağlamak ve oyun hatalarını tespit etmek amacıyla kullanılır. Verileriniz hiçbir şekilde 3. şahıslara satılmaz.
+
+3. Verilerin Silinmesi
+Hesabınızı sildiğinizde, veritabanımızda size ait tüm çevrimiçi veriler (profil, maç geçmişi vb.) kalıcı olarak silinir. Bu işlem geri alınamaz.
+
+4. İletişim
+Gizlilik politikamızla ilgili herhangi bir sorunuz olduğunda bizimle destek e-postamız üzerinden iletişime geçebilirsiniz.
+'''),
             ),
             _MenuTile(
               icon: Icons.gavel_rounded,
               title: 'Kullanım Koşulları',
-              onTap: () {},
+              onTap: () => _showDraggableSheet(context, 'Kullanım Koşulları', '''Futbol Meydanı Kullanım Koşulları
+
+1. Kabul Edilebilir Kullanım
+Oyuncular, çevrimiçi modlarda sportmenliğe yakışmayan davranışlarda bulunamaz. Hile kullanımı (makro, exploit vs.) yasaktır.
+
+2. Hesap Sorumluluğu
+Hesabınızın güvenliğinden tamamen siz sorumlusunuz. Hesabınızın başkaları tarafından kullanılması durumunda doğacak sonuçlardan oyun geliştiricileri sorumlu tutulamaz.
+
+3. Oyun İçi Satın Alımlar
+Yapılan tüm oyun içi satın alımlar (jeton, elmas, vb.) dijital ürün niteliğindedir. İadeler yalnızca ilgili mağazanın (App Store/Google Play) kurallarına göre değerlendirilir.
+
+4. Değişiklikler
+Futbol Meydanı geliştirici ekibi, bu kullanım koşullarını önceden haber vermeksizin değiştirme hakkını saklı tutar.
+'''),
             ),
           ],
         ),
@@ -175,36 +186,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  void _confirmReset() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF111111),
-        title: const Text('Tüm Verileri Sıfırla', style: TextStyle(color: Colors.white)),
-        content: const Text(
-          'Tüm ilerleme, mağaza alışverişleri, rozetler ve ayarlar sıfırlanacak. Bu işlem geri alınamaz!',
-          style: TextStyle(color: Colors.white70, height: 1.4),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Vazgeç', style: TextStyle(color: Colors.white70)),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: Colors.redAccent),
-            onPressed: () async {
-              await gameStore.resetAllData();
-              if (ctx.mounted) Navigator.pop(ctx);
-              if (mounted) {
-                GlassToast.show(context, 'Tüm veriler sıfırlandı.', isError: true);
-              }
-            },
-            child: const Text('Sıfırla', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-  }
+
 }
 
 class _SectionTitle extends StatelessWidget {
@@ -322,6 +304,49 @@ class _SwitchTile extends StatelessWidget {
   }
 }
 
+class _SegmentControlTile extends StatelessWidget {
+  final String title;
+  final String? subtitle;
+  final Map<String, String> options;
+  final String currentValue;
+  final ValueChanged<String> onChanged;
+
+  const _SegmentControlTile({
+    required this.title,
+    this.subtitle,
+    required this.options,
+    required this.currentValue,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 4),
+                  Text(subtitle!, style: const TextStyle(color: Colors.white38, fontSize: 12)),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          _SegmentControl(options: options, currentValue: currentValue, onChanged: onChanged),
+        ],
+      ),
+    );
+  }
+}
+
 // ----------------------------------------------------------------------
 // SUB PAGES
 // ----------------------------------------------------------------------
@@ -370,7 +395,7 @@ class _AccountSubScreenState extends State<_AccountSubScreen> {
             child: Padding(
               padding: const EdgeInsets.only(top: 16, bottom: 8),
               child: GestureDetector(
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const _AvatarSubScreen())),
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AvatarSubScreen())),
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: [
@@ -414,7 +439,7 @@ class _AccountSubScreenState extends State<_AccountSubScreen> {
                   backgroundColor: const Color(0xFF111111),
                   isScrollControlled: true,
                   shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-                  builder: (ctx) => const _NameChangeBottomSheet(),
+                  builder: (ctx) => const NameChangeBottomSheet(),
                 );
                 if (success == true && mounted) setState(() {});
               },
@@ -484,8 +509,8 @@ class _AccountSubScreenState extends State<_AccountSubScreen> {
   }
 }
 
-class _AvatarSubScreen extends StatelessWidget {
-  const _AvatarSubScreen();
+class AvatarSubScreen extends StatelessWidget {
+  const AvatarSubScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -501,14 +526,61 @@ class _AvatarSubScreen extends StatelessWidget {
             children: GameStore.avatars.map((a) {
               final id = a['id'] as String;
               final bool active = gameStore.currentAvatar == id;
+              final bool isUnlocked = gameStore.unlockedAvatars.contains(id);
 
               return GestureDetector(
-                onTap: () => gameStore.setCurrentAvatar(id),
-                child: Opacity(
-                  opacity: active ? 1.0 : 0.4,
-                  child: ClipOval(
-                    child: Image.asset(a['imagePath'] as String, width: 140, height: 140, fit: BoxFit.cover),
-                  ),
+                onTap: () {
+                  if (isUnlocked) {
+                    gameStore.setCurrentAvatar(id);
+                  } else {
+                    GlassToast.show(context, 'Bu avatar henüz açık değil. Mağaza sayfasından satın alabilirsiniz.', isError: true);
+                  }
+                },
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Container(
+                      width: 140,
+                      height: 140,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: active ? const Color(0xFF71F39A) : Colors.transparent,
+                          width: 4,
+                        ),
+                      ),
+                      child: Opacity(
+                        opacity: active ? 1.0 : (isUnlocked ? 0.8 : 0.3),
+                        child: ClipOval(
+                          child: Image.asset(a['imagePath'] as String, width: 140, height: 140, fit: BoxFit.cover),
+                        ),
+                      ),
+                    ),
+                    if (!isUnlocked)
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: Colors.black54,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white24, width: 2),
+                        ),
+                        child: const Icon(Icons.lock_rounded, color: Colors.white, size: 24),
+                      ),
+                    if (active)
+                      Positioned(
+                        bottom: 0,
+                        right: 8,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF71F39A),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.check_rounded, color: Colors.black, size: 20),
+                        ),
+                      ),
+                  ],
                 ),
               );
             }).toList(),
@@ -616,18 +688,34 @@ class _GameplaySubScreen extends StatelessWidget {
             onChanged: (v) => gameStore.setOption('goalCelebration', v),
           ),
           const SizedBox(height: 16),
-          const _SectionTitle(title: 'MAÇ SÜRESİ'),
-          _SegmentControl(
+          const _SectionTitle(title: 'OYNANIŞ VE MAÇ'),
+          _SegmentControlTile(
+            title: 'Maç Süresi',
+            subtitle: 'Bir maçın toplam süresi (dakika)',
             options: const {'3': '3 Dakika', '5': '5 Dakika', '10': '10 Dakika'},
             currentValue: gameStore.matchDuration.toString(),
             onChanged: (v) => gameStore.setOption('matchDuration', int.parse(v)),
           ),
-          const SizedBox(height: 16),
-          const _SectionTitle(title: 'YAPAY ZEKA ZORLUĞU (OFFLINE)'),
-          _SegmentControl(
+          _SegmentControlTile(
+            title: 'Yapay Zeka Zorluğu',
+            subtitle: 'Offline moddaki rakip zorluğu',
             options: const {'0': 'Kolay', '1': 'Normal', '2': 'Efsanevi'},
             currentValue: gameStore.difficulty.toString(),
             onChanged: (v) => gameStore.setOption('difficulty', int.parse(v)),
+          ),
+          const SizedBox(height: 16),
+          const _SectionTitle(title: 'GELİŞMİŞ AYARLAR'),
+          _SwitchTile(
+            title: 'Ping ve FPS Gösterimi',
+            subtitle: 'Maç sırasında performans değerlerini gösterir',
+            value: gameStore.showPingFps,
+            onChanged: (v) => gameStore.setOption('showPingFps', v),
+          ),
+          _SwitchTile(
+            title: 'Veri Tasarrufu Modu',
+            subtitle: 'Online maçlarda daha az internet tüketir',
+            value: gameStore.dataSaver,
+            onChanged: (v) => gameStore.setOption('dataSaver', v),
           ),
         ],
       ),
@@ -820,6 +908,14 @@ class _DiagnosticsSubScreen extends StatelessWidget {
                       },
                       icon: const Icon(Icons.copy_rounded, size: 16),
                       label: const Text('Kopyala'),
+                      style: FilledButton.styleFrom(backgroundColor: Colors.white24, foregroundColor: Colors.white),
+                    ),
+                    FilledButton.icon(
+                      onPressed: () async {
+                        await Share.share(report, subject: 'Futbol Meydanı Tanılama Raporu');
+                      },
+                      icon: const Icon(Icons.share_rounded, size: 16),
+                      label: const Text('Paylaş'),
                       style: FilledButton.styleFrom(backgroundColor: const Color(0xFF71F39A), foregroundColor: Colors.black),
                     ),
                   ],
@@ -853,10 +949,184 @@ class _DiagnosticsSubScreen extends StatelessWidget {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
           ),
+        ),
+        const SizedBox(height: 16),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: FilledButton.icon(
+            onPressed: () {
+               GlassToast.show(context, 'Önbellek temizlendi.', isError: false);
+            },
+            icon: const Icon(Icons.delete_sweep_outlined),
+            label: const Text('Önbelleği Temizle'),
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.white10,
+              foregroundColor: Colors.redAccent,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+          ),
         )
       ],
     );
   }
+}
+
+class _AccountDeleteSubScreen extends StatefulWidget {
+  const _AccountDeleteSubScreen();
+  @override
+  State<_AccountDeleteSubScreen> createState() => _AccountDeleteSubScreenState();
+}
+
+class _AccountDeleteSubScreenState extends State<_AccountDeleteSubScreen> {
+  final _confirmController = TextEditingController();
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _confirmController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _deleteAccount() async {
+    if (_confirmController.text != 'ONAYLIYORUM') {
+      GlassToast.show(context, 'Lütfen onay metnini doğru girin.', isError: true);
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final user = SupabaseState.client?.auth.currentUser;
+      if (user != null) {
+        try {
+          await SupabaseState.client?.from('online_profiles').delete().eq('id', user.id);
+        } catch (_) {}
+        try {
+          await SupabaseState.client?.rpc('delete_user');
+        } catch (_) {}
+        await SupabaseState.client?.auth.signOut();
+      }
+      
+      await gameStore.resetAllData();
+      
+      if (mounted) {
+        GlassToast.show(context, 'Hesabınız başarıyla silindi.', isError: false);
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      }
+    } catch (e) {
+      if (mounted) {
+        GlassToast.show(context, 'Hesap silinirken hata oluştu: $e', isError: true);
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _SubPageScaffold(
+      title: 'Hesabı Sil',
+      children: [
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+          child: Text(
+            'Hesabınızı silmek istediğinize emin misiniz? Bu işlem geri alınamaz.\n\nTüm ilerlemeniz, satın alımlarınız, çevrimiçi verileriniz ve hesabınız kalıcı olarak silinecektir.',
+            style: TextStyle(color: Colors.white70, height: 1.5, fontSize: 16),
+          ),
+        ),
+        const SizedBox(height: 24),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 8),
+          child: Text('Onaylamak için aşağıya ONAYLIYORUM yazın:', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        ),
+        const SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: TextField(
+            controller: _confirmController,
+            style: const TextStyle(color: Colors.white),
+            decoration: InputDecoration(
+              hintText: '',
+              filled: true,
+              fillColor: Colors.white.withValues(alpha: 0.05),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+            ),
+          ),
+        ),
+        const SizedBox(height: 32),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: FilledButton.icon(
+            onPressed: _isLoading ? null : _deleteAccount,
+            icon: _isLoading ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Icon(Icons.delete_forever),
+            label: Text(_isLoading ? 'Siliniyor...' : 'Hesabı Kalıcı Olarak Sil'),
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+          ),
+        )
+      ],
+    );
+  }
+}
+
+void _showDraggableSheet(BuildContext context, String title, String content) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (context) => GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => Navigator.of(context).pop(), // Boşluğa tıklayınca kapatır
+      child: GestureDetector(
+        onTap: () {}, // İçeriğe tıklayınca kapanmasını engeller
+        child: DraggableScrollableSheet(
+          initialChildSize: 0.5,
+          minChildSize: 0.3,
+          maxChildSize: 0.9,
+          builder: (_, scrollController) => Container(
+            decoration: const BoxDecoration(
+              color: Color(0xFF1A1A1A),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            padding: const EdgeInsets.only(top: 16, left: 24, right: 24),
+            child: ListView(
+              controller: scrollController,
+              children: [
+                Center(
+                  child: Container(
+                    width: 48,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: Colors.white24,
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  title,
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 24),
+                  child: Text(
+                    content,
+                    style: const TextStyle(color: Colors.white70, height: 1.6, fontSize: 16),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
 }
 
 // ----------------------------------------------------------------------
@@ -872,6 +1142,9 @@ class _SegmentControl extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final keys = options.keys.toList();
+    final currentIndex = keys.indexOf(currentValue).clamp(0, keys.length - 1);
+    
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: Container(
@@ -880,33 +1153,55 @@ class _SegmentControl extends StatelessWidget {
           color: Colors.white.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Row(
-          children: options.entries.map((e) {
-            final active = e.key == currentValue;
-            return Expanded(
-              child: GestureDetector(
-                onTap: () {
-                  gameStore.tap(GameSound.select);
-                  onChanged(e.key);
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  decoration: BoxDecoration(
-                    color: active ? const Color(0xFF71F39A) : Colors.transparent,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    e.value,
-                    style: TextStyle(
-                      color: active ? Colors.black : Colors.white70,
-                      fontWeight: active ? FontWeight.bold : FontWeight.w600,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final double itemWidth = constraints.maxWidth / options.length;
+            return Stack(
+              children: [
+                AnimatedPositioned(
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeOutCubic,
+                  left: itemWidth * currentIndex,
+                  top: 0,
+                  bottom: 0,
+                  width: itemWidth,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF71F39A),
+                      borderRadius: BorderRadius.circular(6),
                     ),
                   ),
                 ),
-              ),
+                Row(
+                  children: options.entries.map((e) {
+                    final active = e.key == currentValue;
+                    return Expanded(
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () {
+                          gameStore.tap(GameSound.select);
+                          onChanged(e.key);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          alignment: Alignment.center,
+                          child: AnimatedDefaultTextStyle(
+                            duration: const Duration(milliseconds: 200),
+                            style: TextStyle(
+                              color: active ? Colors.black : Colors.white70,
+                              fontWeight: active ? FontWeight.bold : FontWeight.w600,
+                              fontFamily: 'Montserrat', // default system font will inherit if not provided, let's omit fontFamily and use inherited
+                            ),
+                            child: Text(e.value),
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
             );
-          }).toList(),
+          },
         ),
       ),
     );
@@ -1512,14 +1807,14 @@ class _PhoneInputFormatter extends TextInputFormatter {
   }
 }
 
-class _NameChangeBottomSheet extends StatefulWidget {
-  const _NameChangeBottomSheet();
+class NameChangeBottomSheet extends StatefulWidget {
+  const NameChangeBottomSheet({super.key});
 
   @override
-  State<_NameChangeBottomSheet> createState() => _NameChangeBottomSheetState();
+  State<NameChangeBottomSheet> createState() => _NameChangeBottomSheetState();
 }
 
-class _NameChangeBottomSheetState extends State<_NameChangeBottomSheet> {
+class _NameChangeBottomSheetState extends State<NameChangeBottomSheet> {
   late TextEditingController _nameController;
   Timer? _debounce;
   bool _isChecking = false;

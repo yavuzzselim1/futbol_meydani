@@ -91,11 +91,29 @@ class PageShell extends StatelessWidget {
         bottom: bottomSafeArea,
         child: Padding(
           padding: EdgeInsets.fromLTRB(24, 24, 24, bottomSafeArea ? 24 : 0),
-          child: child,
+          child: HudScaler(child: child),
         ),
       ),
     ),
   );
+}
+
+// ─── HudScaler ──────────────────────────────────────────────────────
+class HudScaler extends StatelessWidget {
+  final Widget child;
+  const HudScaler({super.key, required this.child});
+  
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: gameStore,
+      builder: (context, child) => Transform.scale(
+        scale: gameStore.hudSize,
+        child: child,
+      ),
+      child: child,
+    );
+  }
 }
 
 // ─── Brand ──────────────────────────────────────────────────────────

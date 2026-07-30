@@ -491,7 +491,8 @@ class _SelectionViewState extends State<SelectionView> {
         ExitIcon(onPressed: widget.onExit),
       ],
     ),
-    body: SafeArea(
+    body: HudScaler(
+      child: SafeArea(
       child: Column(
         children: [
           Padding(
@@ -607,7 +608,8 @@ class _SelectionViewState extends State<SelectionView> {
         ],
       ),
     ),
-  );
+  ),
+);
 }
 
 // ─── HandoffView ────────────────────────────────────────────────────
@@ -746,7 +748,8 @@ class RevealView extends StatelessWidget {
       title: const Text('Kartlar Açılıyor'),
       actions: [ExitIcon(onPressed: onExit)],
     ),
-    body: SafeArea(
+    body: HudScaler(
+      child: SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -827,7 +830,8 @@ class RevealView extends StatelessWidget {
         ),
       ),
     ),
-  );
+  ),
+);
 }
 
 // ─── RevealCard ─────────────────────────────────────────────────────

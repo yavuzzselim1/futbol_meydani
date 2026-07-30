@@ -381,54 +381,68 @@ class _ShopScreenState extends State<ShopScreen> with TickerProviderStateMixin {
                                     ),
                                   ),
                                   
-                                  // Big Glowing Icon behind content
-                                  Positioned(
-                                    top: 40,
-                                    right: -20,
-                                    child: imagePath != null 
-                                      ? Opacity(
-                                          opacity: 0.15,
-                                          child: ClipOval(child: Image.asset(imagePath, width: 160, height: 160, fit: BoxFit.cover)),
-                                        )
-                                      : Icon(
-                                          icon,
-                                          size: 160,
-                                          color: color.withValues(alpha: 0.15),
-                                        ),
-                                  ),
+                                  if (imagePath == null)
+                                    Positioned(
+                                      top: 40,
+                                      right: -20,
+                                      child: Icon(
+                                        icon,
+                                        size: 160,
+                                        color: color.withValues(alpha: 0.15),
+                                      ),
+                                    ),
 
                                   // Content
                                   Padding(
                                     padding: const EdgeInsets.all(28.0),
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment: imagePath != null ? CrossAxisAlignment.center : CrossAxisAlignment.start,
                                       children: [
-                                        // Header Icon & Title
-                                        Container(
-                                          padding: const EdgeInsets.all(16),
-                                          decoration: BoxDecoration(
-                                            color: color.withValues(alpha: 0.2),
-                                            shape: BoxShape.circle,
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: color.withValues(alpha: 0.4),
-                                                blurRadius: 20,
-                                              ),
-                                            ],
+                                        // Header Icon or Big Centered Avatar
+                                        if (imagePath != null)
+                                          Container(
+                                            margin: const EdgeInsets.only(bottom: 24),
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              border: Border.all(color: Colors.white24, width: 2),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: color.withValues(alpha: 0.4),
+                                                  blurRadius: 30,
+                                                  spreadRadius: 5,
+                                                ),
+                                              ],
+                                            ),
+                                            child: ClipOval(
+                                              child: Image.asset(imagePath, width: 140, height: 140, fit: BoxFit.cover),
+                                            ),
+                                          )
+                                        else
+                                          Container(
+                                            padding: const EdgeInsets.all(16),
+                                            margin: const EdgeInsets.only(bottom: 24),
+                                            decoration: BoxDecoration(
+                                              color: color.withValues(alpha: 0.2),
+                                              shape: BoxShape.circle,
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: color.withValues(alpha: 0.4),
+                                                  blurRadius: 20,
+                                                ),
+                                              ],
+                                            ),
+                                            child: Icon(icon, color: Colors.white, size: 40),
                                           ),
-                                          child: imagePath != null
-                                              ? ClipOval(child: Image.asset(imagePath, width: 40, height: 40, fit: BoxFit.cover))
-                                              : Icon(icon, color: Colors.white, size: 40),
-                                        ),
-                                        const SizedBox(height: 24),
+                                        
                                         Expanded(
                                           child: SingleChildScrollView(
                                             physics: const BouncingScrollPhysics(),
                                             child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              crossAxisAlignment: imagePath != null ? CrossAxisAlignment.center : CrossAxisAlignment.start,
                                               children: [
                                                 Text(
                                                   item['title'],
+                                                  textAlign: imagePath != null ? TextAlign.center : TextAlign.left,
                                                   style: GoogleFonts.oswald(
                                                     color: Colors.white,
                                                     fontSize: 32,
@@ -446,6 +460,7 @@ class _ShopScreenState extends State<ShopScreen> with TickerProviderStateMixin {
                                                 const SizedBox(height: 12),
                                                 Text(
                                                   item['desc'],
+                                                  textAlign: imagePath != null ? TextAlign.center : TextAlign.left,
                                                   style: GoogleFonts.inter(
                                                     color: Colors.white70,
                                                     fontSize: 15,

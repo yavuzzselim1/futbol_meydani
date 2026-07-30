@@ -5,9 +5,17 @@ import 'package:flutter/services.dart';
 import 'package:futbol_meydani/globals.dart';
 import 'package:futbol_meydani/services/game_store.dart';
 import 'package:futbol_meydani/utils/glass_toast.dart';
+import 'package:futbol_meydani/screens/settings_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  bool _isEditing = false;
 
   @override
   Widget build(BuildContext context) => AnimatedBuilder(
@@ -28,42 +36,70 @@ class ProfileScreen extends StatelessWidget {
 
       return Scaffold(
         backgroundColor: const Color(0xFF050505),
-        extendBodyBehindAppBar: true,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          scrolledUnderElevation: 0,
-          surfaceTintColor: Colors.transparent,
-          title: const Text('Profilim', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, letterSpacing: -0.5)),
-          iconTheme: const IconThemeData(color: Colors.white),
-          centerTitle: true,
-        ),
+
         body: Stack(
           children: [
-            // Ambient Background Glow
-            Positioned(
-              top: -100,
-              left: -50,
-              child: Container(
-                width: 300,
-                height: 300,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: avatarColor.withValues(alpha: 0.15),
+            // Ambient Background Glows from Avatar Image
+            Positioned.fill(
+              child: Opacity(
+                opacity: 0.6, // Adjust opacity for better contrast
+                child: Image.asset(
+                  avatarImage,
+                  fit: BoxFit.cover,
                 ),
-                child: BackdropFilter(
-                  filter: ui.ImageFilter.blur(sigmaX: 80, sigmaY: 80),
-                  child: Container(color: Colors.transparent),
+              ),
+            ),
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ui.ImageFilter.blur(sigmaX: 80, sigmaY: 80),
+                child: Container(
+                  color: Colors.black.withValues(alpha: 0.3), // Darken it a bit so text is readable
                 ),
               ),
             ),
             
             SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
-              padding: EdgeInsets.fromLTRB(16, 100 + MediaQuery.of(context).padding.top, 16, 40 + MediaQuery.of(context).padding.bottom),
+              padding: EdgeInsets.fromLTRB(16, MediaQuery.of(context).padding.top + 16, 16, 40 + MediaQuery.of(context).padding.bottom),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  // --- SCROLLABLE HEADER ---
+                  Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: IconButton(
+                          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ),
+                      const Text(
+                        'Profilim',
+                        style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800, letterSpacing: -0.5),
+                      ),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () {
+                            setState(() {
+                              _isEditing = !_isEditing;
+                            });
+                          },
+                          child: Text(
+                            _isEditing ? 'Bitti' : 'Düzenle',
+                            style: TextStyle(
+                              color: _isEditing ? const Color(0xFF00E676) : Colors.white70,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+                  
                   // --- HERO AVATAR AREA ---
                   Center(
                     child: Stack(
@@ -72,6 +108,26 @@ class ProfileScreen extends StatelessWidget {
                       children: [
                         ClipOval(
                           child: Image.asset(avatarImage, width: 120, height: 120, fit: BoxFit.cover),
+                        ),
+                        // Avatar Edit Button
+                        if (_isEditing)
+                        Positioned(
+                          top: 0,
+                          right: 0,
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.push(context, MaterialPageRoute(builder: (_) => const AvatarSubScreen()));
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF151515),
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 1.5),
+                              ),
+                              child: const Icon(Icons.edit_rounded, color: Colors.white, size: 16),
+                            ),
+                          ),
                         ),
                         // Level Badge
                         Positioned(
@@ -97,10 +153,38 @@ class ProfileScreen extends StatelessWidget {
                   const SizedBox(height: 32),
                   
                   // Name and Title
-                  Text(
-                    gameStore.playerName.isNotEmpty ? gameStore.playerName : 'İsimsiz Oyuncu',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: -1),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        gameStore.playerName.isNotEmpty ? gameStore.playerName : 'İsimsiz Oyuncu',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: -1),
+                      ),
+                      if (_isEditing)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8.0),
+                          child: GestureDetector(
+                            onTap: () {
+                              showModalBottomSheet(
+                                context: context,
+                                backgroundColor: const Color(0xFF111111),
+                                isScrollControlled: true,
+                                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+                                builder: (ctx) => const NameChangeBottomSheet(),
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.05),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.edit_rounded, color: Colors.white70, size: 18),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                   const SizedBox(height: 6),
                   Text(
@@ -256,41 +340,114 @@ class ProfileScreen extends StatelessWidget {
                           padding: const EdgeInsets.only(right: 12),
                           child: GestureDetector(
                             onTap: () {
-                              showDialog(
+                              showModalBottomSheet(
                                 context: context,
-                                builder: (ctx) => AlertDialog(
-                                  backgroundColor: const Color(0xFF111111),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                                  title: Row(
-                                    children: [
-                                      Icon(data['icon'] as IconData, color: unlocked ? badgeColor : Colors.white38, size: 28),
-                                      const SizedBox(width: 12),
-                                      Expanded(child: Text(data['title'] as String, style: const TextStyle(color: Colors.white))),
+                                backgroundColor: Colors.transparent,
+                                barrierColor: Colors.transparent,
+                                isScrollControlled: true,
+                                builder: (ctx) => Container(
+                                  margin: const EdgeInsets.all(16),
+                                  padding: const EdgeInsets.all(24),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF151515),
+                                    borderRadius: BorderRadius.circular(32),
+                                    border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 1.5),
+                                    boxShadow: [
+                                      BoxShadow(color: badgeColor.withValues(alpha: 0.15), blurRadius: 40, spreadRadius: -10),
                                     ],
                                   ),
-                                  content: Text(
-                                    '${data['desc']}\n\n${unlocked ? '✅ Kazanıldı!' : '🔒 Henüz kazanılmadı'}',
-                                    style: const TextStyle(color: Colors.white70, height: 1.5),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Container(
+                                        width: 48,
+                                        height: 6,
+                                        margin: const EdgeInsets.only(bottom: 24),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withValues(alpha: 0.2),
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                      ),
+                                      Container(
+                                        padding: const EdgeInsets.all(20),
+                                        decoration: BoxDecoration(
+                                          color: unlocked ? badgeColor.withValues(alpha: 0.1) : Colors.white.withValues(alpha: 0.05),
+                                          shape: BoxShape.circle,
+                                          border: Border.all(color: unlocked ? badgeColor.withValues(alpha: 0.3) : Colors.transparent, width: 2),
+                                        ),
+                                        child: Icon(data['icon'] as IconData, color: unlocked ? badgeColor : Colors.white38, size: 56),
+                                      ),
+                                      const SizedBox(height: 24),
+                                      Text(
+                                        data['title'] as String,
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(color: unlocked ? Colors.white : Colors.white70, fontSize: 24, fontWeight: FontWeight.w900, letterSpacing: -0.5),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Text(
+                                        data['desc'] as String,
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(color: Colors.white54, fontSize: 14, height: 1.5),
+                                      ),
+                                      const SizedBox(height: 24),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                        decoration: BoxDecoration(
+                                          color: unlocked ? const Color(0xFF00E676).withValues(alpha: 0.1) : Colors.white.withValues(alpha: 0.05),
+                                          borderRadius: BorderRadius.circular(16),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(unlocked ? Icons.check_circle_rounded : Icons.lock_rounded, color: unlocked ? const Color(0xFF00E676) : Colors.white54, size: 20),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              unlocked ? 'Kazanıldı!' : 'Henüz kazanılmadı',
+                                              style: TextStyle(color: unlocked ? const Color(0xFF00E676) : Colors.white54, fontWeight: FontWeight.w800, fontSize: 13),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(height: 32),
+                                      SizedBox(
+                                        width: double.infinity,
+                                        child: FilledButton(
+                                          onPressed: () => Navigator.pop(ctx),
+                                          style: FilledButton.styleFrom(
+                                            backgroundColor: Colors.white.withValues(alpha: 0.1),
+                                            foregroundColor: Colors.white,
+                                            padding: const EdgeInsets.symmetric(vertical: 16),
+                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                          ),
+                                          child: const Text('Kapat', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(ctx),
-                                      child: const Text('Kapat', style: TextStyle(color: Colors.white70)),
-                                    ),
-                                  ],
                                 ),
                               );
                             },
-                            child: Container(
-                              width: 90,
-                              height: 110,
-                              decoration: BoxDecoration(
-                                color: unlocked ? badgeColor.withValues(alpha: 0.08) : Colors.white.withValues(alpha: 0.02),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: unlocked ? badgeColor.withValues(alpha: 0.2) : Colors.transparent,
-                                ),
-                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(24),
+                                child: BackdropFilter(
+                                  filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                  child: Container(
+                                    width: 100,
+                                    height: 125,
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                        colors: unlocked
+                                            ? [badgeColor.withValues(alpha: 0.2), badgeColor.withValues(alpha: 0.02)]
+                                            : [Colors.white.withValues(alpha: 0.05), Colors.white.withValues(alpha: 0.01)],
+                                      ),
+                                      borderRadius: BorderRadius.circular(24),
+                                      border: Border.all(
+                                        color: unlocked ? badgeColor.withValues(alpha: 0.3) : Colors.white.withValues(alpha: 0.08),
+                                        width: 1.5,
+                                      ),
+                                    ),
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
@@ -322,7 +479,9 @@ class ProfileScreen extends StatelessWidget {
                               ),
                             ),
                           ),
-                        );
+                        ),
+                      ),
+                    );
                       }).toList(),
                     ),
                   ),
@@ -418,15 +577,28 @@ class _GlassContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(28),
       child: BackdropFilter(
-        filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        filter: ui.ImageFilter.blur(sigmaX: 30, sigmaY: 30),
         child: Container(
-          padding: padding ?? const EdgeInsets.all(20),
+          padding: padding ?? const EdgeInsets.all(22),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.04),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.08), width: 1),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white.withValues(alpha: 0.12),
+                Colors.white.withValues(alpha: 0.02),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.15), width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 20,
+              ),
+            ],
           ),
           child: child,
         ),
@@ -453,36 +625,44 @@ class _BentoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _GlassContainer(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(icon, color: color, size: 24),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  color: color.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: color, size: 20),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
                 ),
                 child: Text(
                   subtitle,
-                  style: TextStyle(color: color, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 0.5),
+                  style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 0.5),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 18),
           Text(
             value,
-            style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w900),
+            style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w900, letterSpacing: -0.5),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 4),
           Text(
             title,
-            style: const TextStyle(color: Colors.white38, fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1),
+            style: const TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 1),
           ),
         ],
       ),
@@ -500,16 +680,16 @@ class _MiniStatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _GlassContainer(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 8),
       child: Column(
         children: [
-          Icon(icon, color: Colors.white54, size: 20),
-          const SizedBox(height: 10),
+          Icon(icon, color: Colors.white60, size: 22),
+          const SizedBox(height: 12),
           Text(
             value,
             style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 4),
           Text(
             title,
             style: const TextStyle(color: Colors.white38, fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 0.5),
@@ -519,3 +699,6 @@ class _MiniStatCard extends StatelessWidget {
     );
   }
 }
+
+
+

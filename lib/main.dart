@@ -31,7 +31,11 @@ Future<void> main() async {
         level: 'error',
         event: 'flutter_framework_error',
         errorCode: 'FM-SYS-002',
-        metadata: {'kind': details.exception.runtimeType.toString()},
+        metadata: {
+          'kind': details.exception.runtimeType.toString(),
+          'message': details.exceptionAsString(),
+          'stack': details.stack?.toString().substring(0, details.stack.toString().length > 200 ? 200 : details.stack.toString().length) ?? '',
+        },
       ),
     );
     previousFlutterError?.call(details);
@@ -42,7 +46,11 @@ Future<void> main() async {
         level: 'error',
         event: 'unhandled_async_error',
         errorCode: 'FM-SYS-002',
-        metadata: {'kind': error.runtimeType.toString()},
+        metadata: {
+          'kind': error.runtimeType.toString(),
+          'message': error.toString(),
+          'stack': stack.toString().substring(0, stack.toString().length > 200 ? 200 : stack.toString().length),
+        },
       ),
     );
     return false;
