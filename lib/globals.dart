@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:futbol_meydani/services/game_store.dart';
+import 'package:futbol_meydani/services/social_store.dart';
 import 'package:futbol_meydani/services/diagnostic_store.dart';
 import 'package:futbol_meydani/services/invite_service.dart';
 import 'package:futbol_meydani/online/online_game.dart';
@@ -7,6 +8,7 @@ import 'package:futbol_meydani/services/supabase_state.dart';
 
 // ─── Global Instances ────────────────────────────────────────────────
 final gameStore = GameStore();
+final socialStore = SocialStore();
 final diagnostics = DiagnosticLogStore(gameStore);
 bool get supabaseReady => SupabaseState.ready;
 

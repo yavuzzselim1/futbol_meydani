@@ -20,10 +20,12 @@ class OnlineLobbyScreen extends StatelessWidget {
     required this.data,
     required this.repository,
     required this.session,
+    this.invitedFriendName,
   }) : roomStream = repository.watchRoom(session.roomCode);
   final GameData data;
   final OnlineGameRepository repository;
   final OnlineSession session;
+  final String? invitedFriendName;
   final Stream<OnlineRoom?> roomStream;
 
   void message(BuildContext context, Object value) =>
@@ -306,22 +308,36 @@ class OnlineLobbyScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(color: Colors.white10),
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                            SizedBox(width: 11),
-                            Text(
-                              'Rakip bekleniyor…',
-                              style: TextStyle(
-                                color: muted,
-                                fontWeight: FontWeight.w800,
+                            if (invitedFriendName == null) ...[
+                              const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(strokeWidth: 2),
                               ),
-                            ),
+                              const SizedBox(width: 11),
+                              const Text(
+                                'Rakip bekleniyor…',
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ] else ...[
+                              const Icon(Icons.mark_email_read, color: Color(0xFF00E676), size: 20),
+                              const SizedBox(width: 8),
+                              Text(
+                                '$invitedFriendName davet edildi...',
+                                style: const TextStyle(
+                                  color: Color(0xFF00E676),
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       ),

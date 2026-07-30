@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:futbol_meydani/constants.dart';
 import 'package:futbol_meydani/globals.dart';
 import 'package:futbol_meydani/models/game_data.dart';
+import 'package:futbol_meydani/services/game_store.dart';
 
 class AppBackground extends StatefulWidget {
   const AppBackground({super.key, required this.child, this.imagePath});
@@ -759,4 +760,49 @@ class _CoinParticle {
     required this.rotationSpeed,
     this.flyDelay = 0.0,
   });
+}
+
+// ─── UserAvatarWidget ────────────────────────────────────────────────
+class UserAvatarWidget extends StatelessWidget {
+  final String? avatarId;
+  final String displayName;
+  final double radius;
+  final Color? backgroundColor;
+  final Color textColor;
+
+  const UserAvatarWidget({
+    super.key,
+    required this.avatarId,
+    required this.displayName,
+    this.radius = 18.0,
+    this.backgroundColor,
+    this.textColor = Colors.white,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (avatarId != null && avatarId != 'default') {
+      final avatar = GameStore.avatars.firstWhere(
+        (a) => a['id'] == avatarId,
+        orElse: () => <String, dynamic>{},
+      );
+      if (avatar.isNotEmpty) {
+        return CircleAvatar(
+          radius: radius,
+          backgroundColor: backgroundColor ?? Colors.white.withValues(alpha: 0.1),
+          backgroundImage: AssetImage(avatar['imagePath'] as String),
+        );
+      }
+    }
+    
+    final initial = displayName.isNotEmpty ? displayName.substring(0, 1).toUpperCase() : '?';
+    return CircleAvatar(
+      backgroundColor: backgroundColor ?? Colors.white.withValues(alpha: 0.1),
+      radius: radius,
+      child: Text(
+        initial,
+        style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: radius * 0.6),
+      ),
+    );
+  }
 }

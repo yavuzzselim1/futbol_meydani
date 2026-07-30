@@ -11,6 +11,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:futbol_meydani/utils/glass_toast.dart';
 
 import '../services/supabase_state.dart';
+import 'package:futbol_meydani/screens/messages_list_screen.dart';
+import 'package:futbol_meydani/widgets/common_widgets.dart';
 
 class FriendsScreen extends StatefulWidget {
   const FriendsScreen({super.key});
@@ -31,7 +33,9 @@ class _FriendsScreenState extends State<FriendsScreen> {
   @override
   void initState() {
     super.initState();
-    _loadFriends();
+    _friendsList = socialStore.friends;
+    _isLoading = false;
+    _loadFriends(); // Fetches updates quietly
     _loadPendingRequests();
     _setupRealtimeSubscription();
   }
@@ -87,12 +91,8 @@ class _FriendsScreenState extends State<FriendsScreen> {
   /// Sadece kabul edilmiş arkadaşlıkları yükle (çift taraflı)
   Future<void> _loadFriends() async {
     if (!mounted) return;
-    if (_client == null) {
-      setState(() => _isLoading = false);
-      return;
-    }
-    setState(() => _isLoading = true);
-
+    if (_client == null) return;
+    
     try {
       var user = _client!.auth.currentUser;
       if (user == null) {
@@ -100,53 +100,16 @@ class _FriendsScreenState extends State<FriendsScreen> {
         user = response.user;
       }
       if (user != null) {
-        // user_id = ben ve status = accepted → friend_id'leri al
-        final sentAccepted = await _client!
-            .from('friends')
-            .select('friend_id')
-            .eq('user_id', user.id)
-            .eq('status', 'accepted');
-
-        // friend_id = ben ve status = accepted → user_id'leri al
-        final receivedAccepted = await _client!
-            .from('friends')
-            .select('user_id')
-            .eq('friend_id', user.id)
-            .eq('status', 'accepted');
-
-        final friendIds = <String>{};
-        for (final row in sentAccepted) {
-          friendIds.add(row['friend_id'] as String);
+        await socialStore.refreshFriends(_client!, user.id);
+        if (mounted) {
+          setState(() {
+            _friendsList = socialStore.friends;
+            _isLoading = false;
+          });
         }
-        for (final row in receivedAccepted) {
-          friendIds.add(row['user_id'] as String);
-        }
-
-        if (friendIds.isNotEmpty) {
-          final profiles = await _client!
-              .from('online_profiles')
-              .select('id, display_name, rating, friend_code')
-              .inFilter('id', friendIds.toList());
-          if (mounted) {
-            setState(() {
-              _friendsList = List<Map<String, dynamic>>.from(profiles);
-              _isLoading = false;
-            });
-          }
-        } else {
-          if (mounted) {
-            setState(() {
-              _friendsList = [];
-              _isLoading = false;
-            });
-          }
-        }
-      } else {
-        if (mounted) setState(() => _isLoading = false);
       }
     } catch (e) {
       debugPrint('Arkadaşlar yüklenirken hata: $e');
-      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -173,7 +136,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
               .toList();
           final profiles = await _client!
               .from('online_profiles')
-              .select('id, display_name, rating')
+              .select('id, display_name, rating, avatar_id')
               .inFilter('id', senderIds);
 
           // Profil bilgilerini pending verisiyle birleştir
@@ -185,6 +148,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                 'id': p['user_id'],
                 'display_name': 'Oyuncu',
                 'rating': 1000,
+                'avatar_id': 'default',
               },
             );
             combined.add({
@@ -192,6 +156,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
               'user_id': p['user_id'],
               'display_name': profile['display_name'],
               'rating': profile['rating'],
+              'avatar_id': profile['avatar_id'],
             });
           }
 
@@ -503,13 +468,43 @@ class _FriendsScreenState extends State<FriendsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Arkadaşlar',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 32,
-                  fontWeight: FontWeight.w900,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Arkadaşlar',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 32,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        PageRouteBuilder(
+                          pageBuilder: (context, animation, secondaryAnimation) => const MessagesListScreen(),
+                          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                            const begin = Offset(1.0, 0.0);
+                            const end = Offset.zero;
+                            const curve = Curves.easeOutCubic;
+                            final tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                            return SlideTransition(
+                              position: animation.drive(tween),
+                              child: child,
+                            );
+                          },
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.chat_bubble_outline_rounded, color: Colors.white),
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.white.withValues(alpha: 0.1),
+                      padding: const EdgeInsets.all(12),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 8),
               const Text(
@@ -761,15 +756,10 @@ class _FriendsScreenState extends State<FriendsScreen> {
                                 ),
                                 child: Row(
                                   children: [
-                                    CircleAvatar(
+                                    UserAvatarWidget(
+                                      avatarId: friend['avatar_id'] as String?,
+                                      displayName: friend['display_name'] ?? '?',
                                       radius: 22,
-                                      backgroundColor: const Color(
-                                        0xFF5EC8FF,
-                                      ).withValues(alpha: 0.15),
-                                      child: const Icon(
-                                        Icons.person,
-                                        color: Color(0xFF5EC8FF),
-                                      ),
                                     ),
                                     const SizedBox(width: 14),
                                     Expanded(
@@ -936,16 +926,10 @@ class _PendingRequestsSheet extends StatelessWidget {
                     ),
                     child: Row(
                       children: [
-                        CircleAvatar(
-                          radius: 20,
-                          backgroundColor: const Color(
-                            0xFFFFD166,
-                          ).withValues(alpha: 0.15),
-                          child: const Icon(
-                            Icons.person_add_rounded,
-                            color: Color(0xFFFFD166),
-                            size: 20,
-                          ),
+                        UserAvatarWidget(
+                          avatarId: request['avatar_id'] as String?,
+                          displayName: request['display_name'] ?? '?',
+                          radius: 22,
                         ),
                         const SizedBox(width: 12),
                         Expanded(

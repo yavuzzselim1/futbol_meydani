@@ -24,6 +24,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env", isOptional: true);
   await gameStore.load();
+  await socialStore.load();
   final previousFlutterError = FlutterError.onError;
   FlutterError.onError = (details) {
     unawaited(
@@ -107,6 +108,14 @@ class FutbolMeydaniApp extends StatelessWidget {
         ),
       ),
     ),
+    builder: (context, child) {
+      return MediaQuery(
+        data: MediaQuery.of(context).copyWith(
+          textScaler: const TextScaler.linear(1.0),
+        ),
+        child: child!,
+      );
+    },
     home: const DataLoader(),
   );
 }

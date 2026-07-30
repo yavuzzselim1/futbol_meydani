@@ -580,6 +580,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 onAddCoinsTap: () {
                   gameStore.tap();
                   setState(() => _currentIndex = 0);
+                  _pageController.animateToPage(
+                    0,
+                    duration: const Duration(milliseconds: 750),
+                    curve: Curves.easeOutQuart,
+                  );
                 },
               ),
             ),
@@ -659,8 +664,10 @@ class _TopHud extends StatelessWidget {
   ) {
     return InkWell(
       onTap: () {
-        close(instant: true);
-        onProfileTap(value);
+        close(instant: false);
+        Future.delayed(const Duration(milliseconds: 300), () {
+          onProfileTap(value);
+        });
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),

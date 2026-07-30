@@ -241,8 +241,16 @@ class GameStore extends ChangeNotifier {
     coins = prefs.getInt('coins') ?? 0;
     trophies = prefs.getInt('trophies') ?? 0;
     friendCode = prefs.getString('friendCode') ?? _generateFriendCode();
-    unlockedAvatars = prefs.getStringList('unlockedAvatars') ?? ['default'];
-    currentAvatar = prefs.getString('currentAvatar') ?? 'default';
+    unlockedAvatars = prefs.getStringList('unlockedAvatars') ?? ['default', 'avatar_pro'];
+    if (!unlockedAvatars.contains('avatar_pro')) {
+      unlockedAvatars.add('avatar_pro');
+      prefs.setStringList('unlockedAvatars', unlockedAvatars);
+    }
+    currentAvatar = prefs.getString('currentAvatar') ?? 'avatar_pro';
+    if (currentAvatar == 'default') {
+      currentAvatar = 'avatar_pro';
+      prefs.setString('currentAvatar', currentAvatar);
+    }
     activeTheme = prefs.getString('activeTheme') ?? 'default';
     unlockedThemes = prefs.getStringList('unlockedThemes') ?? ['default'];
     unlockedBoosts = prefs.getStringList('unlockedBoosts') ?? [];
@@ -309,12 +317,20 @@ class GameStore extends ChangeNotifier {
               .from('online_profiles')
               .update({
                 'display_name': playerName.isNotEmpty ? playerName : 'Oyuncu',
+                'avatar_id': currentAvatar,
               })
               .eq('id', user.id)
               .select('friend_code')
               .single();
           friendCode = res['friend_code'] as String;
           await prefs.setString('friendCode', friendCode);
+        }
+        
+        // Sync local avatar to cloud if cloud has no avatar set
+        if (onlineRes['avatar_id'] == null || onlineRes['avatar_id'] == 'default') {
+          try {
+            await client.from('online_profiles').update({'avatar_id': currentAvatar}).eq('id', user.id);
+          } catch (_) {}
         }
       } else {
         final displayName = playerName.isNotEmpty ? playerName : 'Oyuncu';
@@ -329,6 +345,7 @@ class GameStore extends ChangeNotifier {
               'rating': seedNewProfileFromLocal ? trophies : 0,
               'matches': seedNewProfileFromLocal ? matches : 0,
               'wins': seedNewProfileFromLocal ? wins.length : 0,
+              'avatar_id': currentAvatar,
               ...localSeed,
             })
             .select()
@@ -435,8 +452,15 @@ class GameStore extends ChangeNotifier {
       unlockedBadges = List<String>.from(cloudProgress.unlockedBadges);
     }
 
+    if (onlineRes.containsKey('avatar_id')) {
+      final cloudAvatarId = onlineRes['avatar_id'] as String?;
+      if (cloudAvatarId != null && cloudAvatarId != 'default') {
+        currentAvatar = cloudAvatarId;
+      }
+    }
+
     if (!unlockedAvatars.contains(currentAvatar)) {
-      currentAvatar = 'default';
+      currentAvatar = 'avatar_pro';
     }
     if (!unlockedThemes.contains(activeTheme)) {
       activeTheme = 'default';
@@ -487,6 +511,7 @@ class GameStore extends ChangeNotifier {
             'unlocked_avatars': unlockedAvatars,
             'unlocked_themes': unlockedThemes,
             'unlocked_badges': unlockedBadges,
+            'avatar_id': currentAvatar,
           })
           .eq('id', user.id);
     } catch (error) {
@@ -822,6 +847,8 @@ class GameStore extends ChangeNotifier {
     if (unlockedAvatars.contains(avatarId)) {
       currentAvatar = avatarId;
       prefs.setString('currentAvatar', currentAvatar);
+      _markOfflineProgressDirty();
+      _syncUnlockCollections();
       notifyListeners();
     }
   }
