@@ -17,7 +17,7 @@ class LastMinuteCareerScreen extends StatefulWidget {
 
 class _LastMinuteCareerScreenState extends State<LastMinuteCareerScreen> with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
-  
+
   @override
   void initState() {
     super.initState();
@@ -55,52 +55,43 @@ class _LastMinuteCareerScreenState extends State<LastMinuteCareerScreen> with Si
     return points;
   }
 
-  Widget _buildGlassStatBox(String title, String value) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white12),
-      ),
-      child: Column(
-        children: [
-          Text(
-            title,
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Colors.white70),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildGlassButton(String label, IconData icon, VoidCallback onTap) {
+  Widget _buildActionCard({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
     return InkWell(
       onTap: () {
         gameStore.tap();
         onTap();
       },
-      borderRadius: BorderRadius.circular(30),
+      borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(30),
-          border: Border.all(color: Colors.white24),
+          color: color.withOpacity(0.12),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withOpacity(0.4)),
         ),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: Colors.white, size: 20),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 14),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(width: 10),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: TextStyle(color: color, fontWeight: FontWeight.w900, fontSize: 14)),
+                Text(subtitle, style: const TextStyle(color: Colors.white54, fontSize: 11)),
+              ],
             ),
           ],
         ),
@@ -114,220 +105,216 @@ class _LastMinuteCareerScreenState extends State<LastMinuteCareerScreen> with Si
     final completed = stars.where((value) => value > 0).length;
     final gold = const Color(0xFFFFD166);
 
-    return PageShell(
-      bottomSafeArea: false,
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'Son Dakika Kariyeri',
+          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17, color: Colors.white),
+        ),
+        actions: [
+          Container(
+            margin: const EdgeInsets.only(right: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.white24),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
-                    borderRadius: BorderRadius.circular(99),
-                    border: Border.all(color: Colors.white24),
-                  ),
-                  child: const Text(
-                    'SON DAKİKA KARİYERİ',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 12,
-                    ),
-                  ),
+                Icon(Icons.star_rounded, color: gold, size: 13),
+                const SizedBox(width: 4),
+                Text(
+                  '${gameStore.careerStars}  •  $completed/12',
+                  style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700),
                 ),
-                ExitIcon(onPressed: () => Navigator.pop(context)),
               ],
             ),
-            const SizedBox(height: 25),
-            SlideTransition(
-              position: Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero).animate(
-                CurvedAnimation(parent: _controller, curve: const Interval(0.0, 0.4, curve: Curves.easeOutCubic)),
+          ),
+        ],
+      ),
+      body: AppBackground(
+        child: SafeArea(
+          bottom: false,
+          child: Stack(
+            children: [
+              const Positioned.fill(
+                child: PitchBackground(child: SizedBox()),
               ),
-              child: FadeTransition(
-                opacity: Tween<double>(begin: 0, end: 1).animate(
-                  CurvedAnimation(parent: _controller, curve: const Interval(0.0, 0.4, curve: Curves.easeOut)),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(18),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.4),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.white12),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
+              SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 12),
+                      SlideTransition(
+                        position: Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero).animate(
+                          CurvedAnimation(parent: _controller, curve: const Interval(0.0, 0.4, curve: Curves.easeOutCubic)),
+                        ),
+                        child: FadeTransition(
+                          opacity: Tween<double>(begin: 0, end: 1).animate(
+                            CurvedAnimation(parent: _controller, curve: const Interval(0.0, 0.4, curve: Curves.easeOut)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(
-                                Icons.workspace_premium_rounded,
-                                color: gold,
-                                size: 16,
+                              Row(
+                                children: [
+                                  Icon(Icons.workspace_premium_rounded, color: gold, size: 13),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    'KARİYER YOLCULUĞU',
+                                    style: TextStyle(
+                                      color: gold,
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 1.5,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 6),
-                              Text(
-                                'KARİYER YOLCULUĞU',
+                              const SizedBox(height: 3),
+                              const Text(
+                                "Mahalleden Meydan Arena'ya",
                                 style: TextStyle(
-                                  color: gold,
-                                  fontSize: 10,
+                                  fontSize: 20,
                                   fontWeight: FontWeight.w900,
-                                  letterSpacing: 1.5,
+                                  letterSpacing: -0.5,
+                                  color: Colors.white,
                                 ),
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Mahalleden Meydan Arena’ya',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: -0.5,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildGlassStatBox('ETAP (${completed}/12)', '$completed'),
+                              const SizedBox(height: 3),
+                              const Text(
+                                'Futbol serüvenine katıl ve tüm aşamaları geç.',
+                                style: TextStyle(color: Colors.white54, fontSize: 12, height: 1.4),
                               ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: _buildGlassStatBox('YILDIZ', '${gameStore.careerStars}'),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildGlassButton(
-                                  'Serbest',
-                                  Icons.sports_soccer_rounded,
-                                  () => Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => const AdvancedLastMinuteScreen(),
+                              const SizedBox(height: 14),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildActionCard(
+                                      title: 'Serbest',
+                                      subtitle: 'Antrenman modu',
+                                      icon: Icons.sports_soccer_rounded,
+                                      color: const Color(0xFF71F39A),
+                                      onTap: () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (_) => const AdvancedLastMinuteScreen()),
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _buildGlassButton(
-                                  'Günlük',
-                                  Icons.today_rounded,
-                                  () => Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => const AdvancedLastMinuteScreen(startDaily: true),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: _buildActionCard(
+                                      title: 'Günlük',
+                                      subtitle: 'Ödüllü maç',
+                                      icon: Icons.today_rounded,
+                                      color: const Color(0xFFFFD166),
+                                      onTap: () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (_) => const AdvancedLastMinuteScreen(startDaily: true)),
+                                      ),
                                     ),
                                   ),
-                                ),
+                                ],
                               ),
                             ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            FadeTransition(
-              opacity: Tween<double>(begin: 0, end: 1).animate(
-                CurvedAnimation(parent: _controller, curve: const Interval(0.3, 0.6, curve: Curves.easeOut)),
-              ),
-              child: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 4),
-                child: Text(
-                  'AŞAMALAR',
-                  style: TextStyle(
-                    color: muted,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.5,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final width = constraints.maxWidth;
-                final points = _generatePoints(width);
-                final mapHeight = (12 * 120.0) + 400; // Extended so it doesn't cut off at the bottom
-                
-                final unlockedList = List.generate(12, (i) => i == 0 || stars[i - 1] > 0);
-
-                return PitchBackground(
-                  child: SizedBox(
-                    width: width,
-                    height: mapHeight,
-                    child: Stack(
-                      children: [
-                        Positioned.fill(
-                          child: AnimatedBuilder(
-                            animation: _controller,
-                            builder: (context, child) {
-                              final pathOpacity = Curves.easeOut.transform(
-                                max(0.0, min(1.0, (_controller.value - 0.4) / 0.3)),
-                              );
-                              return Opacity(
-                                opacity: pathOpacity,
-                                child: CustomPaint(
-                                  painter: CareerPathPainter(points, unlockedList),
-                                ),
-                              );
-                            },
                           ),
                         ),
-                        ...List.generate(12, (i) {
-                          final point = points[i];
-                          final isBoss = CareerLevelInfo.levels[i].boss;
-                          final nodeWidth = isBoss ? 70.0 : 60.0;
-                          
-                          return Positioned(
-                            left: point.dx - nodeWidth / 2,
-                            top: point.dy - 35, 
-                            child: AnimatedBuilder(
-                              animation: _controller,
-                              builder: (context, child) {
-                                final start = 0.3 + (i * 0.05);
-                                final end = min(1.0, start + 0.2);
-                                final val = Curves.easeOutBack.transform(
-                                  max(0.0, min(1.0, (_controller.value - start) / (end - start))),
-                                );
-                                return CareerNode(
-                                  number: i + 1,
-                                  info: CareerLevelInfo.levels[i],
-                                  stars: stars[i],
-                                  unlocked: unlockedList[i],
-                                  onTap: () => openLevel(i),
-                                  animationValue: val,
-                                );
-                              },
+                      ),
+                      const SizedBox(height: 18),
+                      FadeTransition(
+                        opacity: Tween<double>(begin: 0, end: 1).animate(
+                          CurvedAnimation(parent: _controller, curve: const Interval(0.3, 0.6, curve: Curves.easeOut)),
+                        ),
+                        child: const Text(
+                          'AŞAMALAR',
+                          style: TextStyle(
+                            color: muted,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.5,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final width = constraints.maxWidth;
+                          final points = _generatePoints(width);
+                          final mapHeight = (12 * 120.0) + 400;
+                          final unlockedList = List.generate(12, (i) => i == 0 || stars[i - 1] > 0);
+
+                          return SizedBox(
+                            width: width,
+                            height: mapHeight,
+                            child: Stack(
+                              children: [
+                                Positioned.fill(
+                                  child: AnimatedBuilder(
+                                    animation: _controller,
+                                    builder: (context, child) {
+                                      final pathOpacity = Curves.easeOut.transform(
+                                        max(0.0, min(1.0, (_controller.value - 0.4) / 0.3)),
+                                      );
+                                      return Opacity(
+                                        opacity: pathOpacity,
+                                        child: CustomPaint(
+                                          painter: CareerPathPainter(points, unlockedList),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                                ...List.generate(12, (i) {
+                                  final point = points[i];
+                                  final isBoss = CareerLevelInfo.levels[i].boss;
+                                  final nodeWidth = isBoss ? 70.0 : 60.0;
+
+                                  return Positioned(
+                                    left: point.dx - nodeWidth / 2,
+                                    top: point.dy - 35,
+                                    child: AnimatedBuilder(
+                                      animation: _controller,
+                                      builder: (context, child) {
+                                        final start = 0.3 + (i * 0.05);
+                                        final end = min(1.0, start + 0.2);
+                                        final val = Curves.easeOutBack.transform(
+                                          max(0.0, min(1.0, (_controller.value - start) / (end - start))),
+                                        );
+                                        return CareerNode(
+                                          number: i + 1,
+                                          info: CareerLevelInfo.levels[i],
+                                          stars: stars[i],
+                                          unlocked: unlockedList[i],
+                                          onTap: () => openLevel(i),
+                                          animationValue: val,
+                                        );
+                                      },
+                                    ),
+                                  );
+                                }),
+                              ],
                             ),
                           );
-                        }),
-                      ],
-                    ),
+                        },
+                      ),
+                      const SizedBox(height: 40),
+                    ],
                   ),
-                );
-              },
-            ),
-            const SizedBox(height: 40),
-          ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

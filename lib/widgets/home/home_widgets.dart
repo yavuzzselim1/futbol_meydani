@@ -902,7 +902,6 @@ class _ZoomOutAnimatorState extends State<ZoomOutAnimator>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
-  ModalRoute? _route;
 
   @override
   void initState() {
@@ -919,33 +918,29 @@ class _ZoomOutAnimatorState extends State<ZoomOutAnimator>
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final route = ModalRoute.of(context);
-    if (route != _route) {
-      if (_route != null) {
-        _route!.secondaryAnimation?.removeStatusListener(_routeListener);
-      }
-      _route = route;
-      _route?.secondaryAnimation?.addStatusListener(_routeListener);
-    }
-  }
-
-  void _routeListener(AnimationStatus status) {
-    if (status == AnimationStatus.dismissed) {
-      _controller.forward(from: 0.0);
-    }
-  }
-
-  @override
   void dispose() {
-    _route?.secondaryAnimation?.removeStatusListener(_routeListener);
     _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final route = ModalRoute.of(context);
+    if (route != null && route.secondaryAnimation != null) {
+      return AnimatedBuilder(
+        animation: Listenable.merge([_animation, route.secondaryAnimation!]),
+        builder: (context, child) {
+          final baseScale = _animation.value;
+          final secondaryScale = 1.0 + (route.secondaryAnimation!.value * 0.08);
+          return Transform.scale(
+            scale: baseScale * secondaryScale,
+            child: child,
+          );
+        },
+        child: widget.child,
+      );
+    }
+
     return AnimatedBuilder(
       animation: _animation,
       builder: (context, child) {

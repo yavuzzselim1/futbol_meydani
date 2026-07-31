@@ -227,7 +227,7 @@ class GameStore extends ChangeNotifier {
     difficulty = prefs.getInt('difficulty') ?? 1;
     menuTheme = prefs.getString('menuTheme') ?? 'system';
     ballModel = prefs.getString('ballModel') ?? 'classic';
-    hudSize = prefs.getDouble('hudSize') ?? 1.0;
+    hudSize = 1.0; // Sabit 1x - kullanıcı tercihi sıfırlandı
     showPingFps = prefs.getBool('showPingFps') ?? false;
     dataSaver = prefs.getBool('dataSaver') ?? false;
     matches = prefs.getInt('matches') ?? 0;

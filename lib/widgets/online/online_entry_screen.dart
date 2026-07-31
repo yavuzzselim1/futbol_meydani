@@ -378,63 +378,85 @@ class _OnlineEntryScreenState extends State<OnlineEntryScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     resizeToAvoidBottomInset: true,
+    extendBodyBehindAppBar: true,
     appBar: AppBar(
       title: const Text(
         'Online Meydan',
-        style: TextStyle(fontWeight: FontWeight.bold),
+        style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17, color: Colors.white),
       ),
       backgroundColor: Colors.transparent,
       elevation: 0,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+        onPressed: () => Navigator.pop(context),
+      ),
+      actions: [
+        if (repository is SupabaseOnlineGameRepository)
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: GestureDetector(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => OnlineProfileScreen(repository: repository),
+                ),
+              ),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white24),
+                ),
+                child: const Icon(Icons.person_rounded, color: Colors.white, size: 22),
+              ),
+            ),
+          ),
+      ],
     ),
-    extendBodyBehindAppBar: true,
     body: AppBackground(
       child: SafeArea(
+        bottom: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const SizedBox(height: 8),
+              // Header
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Expanded(
-                    child: Text(
-                      'Dünyanın her yerinden rakiplerle karşılaş veya arkadaşlarınla özel maç yap.',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 16,
-                        height: 1.4,
-                      ),
+                  Container(
+                    width: 4,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF00E676),
+                      borderRadius: BorderRadius.circular(2),
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  if (repository is SupabaseOnlineGameRepository)
-                    GestureDetector(
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => OnlineProfileScreen(repository: repository),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Dünyanın Her Yerinden',
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.white, height: 1.1),
                         ),
-                      ),
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.5),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.white24),
+                        Text(
+                          'Rakiplerle ölüm kalım maçı yap.',
+                          style: TextStyle(color: Colors.white54, fontSize: 13),
                         ),
-                        child: const Icon(Icons.person_rounded, color: Colors.white, size: 28),
-                      ),
+                      ],
                     ),
+                  ),
                 ],
               ),
-              const Spacer(),
-
+              const SizedBox(height: 20),
               if (checkingRecovery) ...[
                 const LinearProgressIndicator(color: Color(0xFF5EC8FF), backgroundColor: Colors.white24),
                 const SizedBox(height: 16),
               ],
-              
               if (savedSession != null) ...[
                 _buildActionCard(
                   title: savedRoom?.gameSetup == null ? 'Yeniden Bağlan' : 'Maça Devam Et',
@@ -443,8 +465,9 @@ class _OnlineEntryScreenState extends State<OnlineEntryScreen> {
                   color: const Color(0xFFFF453A),
                   onTap: busy ? null : _continueSavedMatch,
                 ),
-                const SizedBox(height: 12),
-                Center(
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerRight,
                   child: TextButton(
                     onPressed: busy ? null : () async {
                       setState(() => busy = true);
@@ -456,34 +479,34 @@ class _OnlineEntryScreenState extends State<OnlineEntryScreen> {
                       await clearActiveOnlineSession();
                       if (mounted) setState(() { savedSession = null; savedPlayerName = null; busy = false; });
                     },
-                    child: const Text('Kaydı Sil', style: TextStyle(color: Colors.white54)),
+                    child: const Text('Kaydı Sil', style: TextStyle(color: Colors.white38, fontSize: 12)),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
               ],
-
+              // Primary: Quick match
               _buildActionCard(
                 title: 'Hızlı Eşleşme',
-                subtitle: 'Rastgele bir rakip bul',
+                subtitle: 'Rastgele bir rakip bul, hemen başla',
                 icon: Icons.bolt_rounded,
                 color: const Color(0xFF00E676),
-                isPrimary: true,
                 onTap: busy ? null : findRandomOpponent,
+                isPrimary: true,
               ),
-              const SizedBox(height: 16),
-              
+              const SizedBox(height: 12),
+              // Secondary cards row
               Row(
                 children: [
                   Expanded(
                     child: _buildActionCard(
                       title: 'Oda Kur',
                       subtitle: 'Özel maç',
-                      icon: Icons.add_rounded,
+                      icon: Icons.add_circle_rounded,
                       color: const Color(0xFF5EC8FF),
                       onTap: busy ? null : createRoom,
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: _buildActionCard(
                       title: 'Katıl',
@@ -495,7 +518,7 @@ class _OnlineEntryScreenState extends State<OnlineEntryScreen> {
                   ),
                 ],
               ),
-              const Spacer(flex: 2),
+              const Spacer(),
             ],
           ),
         ),
@@ -513,42 +536,76 @@ class _OnlineEntryScreenState extends State<OnlineEntryScreen> {
   }) {
     return GestureDetector(
       onTap: onTap,
-      child: GlassCard(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Icon(icon, color: color, size: isPrimary ? 36 : 32),
-                Icon(Icons.arrow_forward_rounded, color: Colors.white38, size: 24),
-              ],
+      child: AnimatedOpacity(
+        opacity: onTap == null ? 0.5 : 1.0,
+        duration: const Duration(milliseconds: 200),
+        child: Container(
+          padding: EdgeInsets.all(isPrimary ? 20 : 16),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: isPrimary ? 0.15 : 0.08),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: color.withValues(alpha: isPrimary ? 0.6 : 0.35),
+              width: isPrimary ? 1.5 : 1,
             ),
-            const SizedBox(height: 24),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: isPrimary ? 24 : 20,
-                fontWeight: FontWeight.w800,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              subtitle,
-              style: const TextStyle(
-                fontSize: 14,
-                color: Colors.white70,
-              ),
-            ),
-          ],
+          ),
+          child: isPrimary
+              ? Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(icon, color: color, size: 28),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: color),
+                          ),
+                          Text(
+                            subtitle,
+                            style: const TextStyle(fontSize: 12, color: Colors.white60),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(Icons.arrow_forward_ios_rounded, color: color.withValues(alpha: 0.6), size: 16),
+                  ],
+                )
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Icon(icon, color: color, size: 24),
+                        Icon(Icons.arrow_forward_ios_rounded, color: Colors.white24, size: 13),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      title,
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: color),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(fontSize: 11, color: Colors.white54),
+                    ),
+                  ],
+                ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
+
 
   void _showJoinModal(BuildContext context) {
     showModalBottomSheet(
