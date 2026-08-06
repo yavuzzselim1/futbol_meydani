@@ -1,0 +1,59 @@
+{
+  "status": "ok",
+  "season": "2023/24",
+  "selected_games": 1520,
+  "appearance_rows": 46801,
+  "players": 2390,
+  "teams": 80,
+  "eligible_draws": 31920,
+  "players_without_historical_team": 0,
+  "draws_per_league_metric": {
+    "ES1:appearances": 1330,
+    "ES1:assists": 1330,
+    "ES1:goal_contributions": 1330,
+    "ES1:goals": 1330,
+    "ES1:minutes": 1330,
+    "ES1:yellow_cards": 1330,
+    "GB1:appearances": 1330,
+    "GB1:assists": 1330,
+    "GB1:goal_contributions": 1330,
+    "GB1:goals": 1330,
+    "GB1:minutes": 1330,
+    "GB1:yellow_cards": 1330,
+    "IT1:appearances": 1330,
+    "IT1:assists": 1330,
+    "IT1:goal_contributions": 1330,
+    "IT1:goals": 1330,
+    "IT1:minutes": 1330,
+    "IT1:yellow_cards": 1330,
+    "TR1:appearances": 1330,
+    "TR1:assists": 1330,
+    "TR1:goal_contributions": 1330,
+    "TR1:goals": 1330,
+    "TR1:minutes": 1330,
+    "TR1:yellow_cards": 1330
+  },
+  "rejected_draws": {},
+  "league_summary": {
+    "GB1": {
+      "name": "Premier League",
+      "players": 570,
+      "teams": 20
+    },
+    "ES1": {
+      "name": "La Liga",
+      "players": 598,
+      "teams": 20
+    },
+    "IT1": {
+      "name": "Serie A",
+      "players": 590,
+      "teams": 20
+    },
+    "TR1": {
+      "name": "Trendyol Süper Lig",
+      "players": 632,
+      "teams": 20
+    }
+  }
+}

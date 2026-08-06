@@ -1,0 +1,51 @@
+FUTBOL MEYDANI - GERÇEK ÇEVRİMİÇİ MOD KURULUMU
+
+1. https://supabase.com adresinde ücretsiz bir proje oluştur.
+2. Authentication > Providers > Anonymous bölümünden anonim girişleri aç.
+3. SQL Editor > New query aç.
+4. Paketteki supabase/online_rooms.sql dosyasının tamamını yapıştırıp Run'a bas.
+   Daha önce eski SQL'i çalıştırdıysan da bu paketteki dosyanın
+   tamamını yeniden çalıştır. Komutlar mevcut yapıyı güvenli biçimde günceller.
+5. Project Settings > API Keys bölümünden şunları al:
+   - Project URL
+   - Publishable key (veya eski projelerde anon public key)
+   Service role/secret anahtarını KESİNLİKLE kullanma.
+6. Proje klasöründe şunu çalıştır (değerleri kendi bilgilerinle değiştir):
+
+flutter run --dart-define=SUPABASE_URL=https://PROJE.supabase.co --dart-define=SUPABASE_PUBLISHABLE_KEY=sb_publishable_ANAHTARIN
+
+7. İki emülatör/telefon kullan:
+   - Birinci cihaz Online Meydan > Oda Kur
+   - İkinci cihaz Online Meydan > kodu yaz > Odaya Katıl
+   - İki cihazda Hazır seçeneğini aç
+   - Oda kurucusu Oda Akışını Başlat'a bassın
+
+ÖNEMLİ
+- Normal "flutter run" kullanırsan uygulama güvenli biçimde Yerel Test Moduna döner.
+- dart-define değerleri derleme sırasında eklenir; kaynak dosyalara anahtar yazılmaz.
+- Publishable/anon anahtarı mobil uygulamada kullanılmak üzere tasarlanmıştır; güvenliği RLS sağlar.
+- Service role anahtarı yönetici yetkilidir ve uygulamaya asla eklenmemelidir.
+V1.15.0 GÜNCELLEMESİ
+--------------------
+Takım banı ve ilk kadro tamamlandığında rakip süresini 60 saniyeye düşürme
+özellikleri için supabase\online_rooms.sql dosyasının TAMAMINI Supabase
+Dashboard > SQL Editor içinde yeniden çalıştır. Eski tablolar ve odalar
+silinmez; gerekli kolonlar ve fonksiyonlar güvenli biçimde güncellenir.
+
+V1.16.0 GÜNCELLEMESİ
+--------------------
+Rastgele rakip bulma kuyruğu, Meydan puanı, galibiyet/beraberlik/mağlubiyet
+istatistikleri ve maç geçmişi için supabase\online_rooms.sql dosyasının
+TAMAMINI yeniden çalıştır. SQL Editor işlem sonunda "Success" göstermeden
+build34 APK'sını iki telefonda test etme.
+
+V1.18.0 BİLGİSİ
+
+Build 36 yalnızca arayüz ve oyun içi açıklama güncellemesi içerir.
+Build 35 SQL dosyasını daha önce uyguladıysanız yeniden çalıştırmanız gerekmez.
+
+V1.17.0 GÜNCELLEMESİ
+--------------------
+Güvenli online olay/hata kayıtları ve 30 günlük otomatik temizlik için
+supabase\online_rooms.sql dosyasının TAMAMINI yeniden çalıştır. game_logs
+tablosu oyunculara kapalıdır; yalnızca güvenli sunucu fonksiyonu kayıt ekler.
