@@ -51,3 +51,6 @@ app.*.map.json
 # Ortam değişkenleri / gizli anahtarlar
 .env
 *.env
+.claude/
+supabase/.temp/
+
